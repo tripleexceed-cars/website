@@ -1,0 +1,16 @@
+{
+  "name": "Triple Exceed",
+  "description": "A premium international vehicle import and booking platform specializing in cars from the USA and China for the Ghanaian market.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "Vehicle Marketplace",
+    "Import Tracking",
+    "AI Recommendations",
+    "Admin Dashboard",
+    "Financing Requests"
+  ]
+}
