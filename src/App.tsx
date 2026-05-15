@@ -16,6 +16,7 @@ import Services from './pages/Services';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 import Track from './pages/Track';
+import Logistics from './pages/Logistics';
 import NetworkStatus from './components/common/NetworkStatus';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
               <Route path="/faq" element={<FAQ />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/track" element={<Track />} />
+              <Route path="/logistics" element={<Logistics />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/vehicle/:id" element={<VehicleDetail />} />
               <Route path="/dashboard" element={<Dashboard />} />

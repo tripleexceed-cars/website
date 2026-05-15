@@ -1,21 +1,34 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Crosshair, Ship, Anchor, Search, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Crosshair, Ship, Anchor, Search, ArrowRight, AlertTriangle, Clock } from 'lucide-react';
+import { supabaseService } from '../lib/supabaseService';
 
 export default function Track() {
   const [trackingId, setTrackingId] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [result, setResult] = useState(false);
+  const [shipment, setShipment] = useState<any>(null);
+  const [error, setError] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!trackingId) return;
+    
     setIsSearching(true);
-    // Simulate API search
-    setTimeout(() => {
+    setError(false);
+    setShipment(null);
+
+    try {
+      const data = await supabaseService.getShipmentByTrackingId(trackingId);
+      if (data) {
+        setShipment(data);
+      } else {
+        setError(true);
+      }
+    } catch (err) {
+      setError(true);
+    } finally {
       setIsSearching(false);
-      setResult(true);
-    }, 1500);
+    }
   };
 
   return (
@@ -38,14 +51,14 @@ export default function Track() {
 
           <form onSubmit={handleSearch} className="luxury-glass p-8 md:p-12 space-y-8 max-w-2xl mx-auto border-brand-gold/20">
             <div className="space-y-4">
-              <label className="text-[10px] uppercase tracking-[0.5em] text-brand-gold font-bold block">
+              <label className="text-[10px] uppercase tracking-[0.5em] text-brand-gold font-bold block text-left">
                 Enter Tracking ID or VIN
               </label>
               <div className="relative group">
                 <input 
                   type="text" 
                   placeholder="e.g. TE-492817"
-                  className="w-full bg-brand-white/5 border-b border-brand-white/10 py-6 text-2xl md:text-3xl font-display text-brand-white focus:outline-none focus:border-brand-gold transition-all uppercase"
+                  className="w-full bg-brand-white/5 border-b border-brand-white/10 py-6 text-2xl md:text-3xl font-display text-brand-white focus:outline-none focus:border-brand-gold transition-all uppercase placeholder:opacity-20"
                   value={trackingId}
                   onChange={(e) => setTrackingId(e.target.value)}
                 />
@@ -53,7 +66,7 @@ export default function Track() {
               </div>
             </div>
 
-            <button type="submit" className="w-full btn-premium-filled py-5 flex items-center justify-center space-x-4 group">
+            <button type="submit" disabled={isSearching} className="w-full btn-premium-filled py-5 flex items-center justify-center space-x-4 group disabled:opacity-50">
               {isSearching ? (
                 <div className="w-5 h-5 border-2 border-brand-black border-t-transparent animate-spin rounded-full" />
               ) : (
@@ -65,58 +78,86 @@ export default function Track() {
             </button>
           </form>
 
-          {result && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-brand-matte border border-brand-gold/30 p-8 md:p-12 relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Ship size={120} />
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left relative z-10">
-                <div className="space-y-8">
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Protocol Status</p>
-                    <h3 className="text-3xl font-display font-medium text-brand-white flex items-center gap-3">
-                      In Transit
-                      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    </h3>
+          <AnimatePresence mode="wait">
+            {shipment && (
+              <motion.div 
+                key="result"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-brand-matte border border-brand-gold/30 p-8 md:p-12 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <Ship size={120} />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 text-left relative z-10">
+                  <div className="space-y-8">
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Protocol Status</p>
+                      <h3 className="text-3xl font-display font-medium text-brand-white flex items-center gap-3">
+                        {shipment.status}
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                      </h3>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-brand-white/30 font-bold">Current Location</p>
+                      <p className="text-xl text-brand-white flex items-center gap-2">
+                        <Anchor size={18} className="text-brand-gold" />
+                        {shipment.location}
+                      </p>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest text-brand-white/30 font-bold">Current Location</p>
-                    <p className="text-xl text-brand-white flex items-center gap-2">
-                      <Anchor size={18} className="text-brand-gold" />
-                      Atlantic Crossing - Area 5
-                    </p>
+
+                  <div className="space-y-8">
+                    <div className="space-y-2">
+                      <p className="text-[10px] uppercase tracking-widest text-brand-white/30 font-bold">Asset Type</p>
+                      <p className="text-xl text-brand-white">{shipment.vehicleName}</p>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
+                        <span className="text-brand-gold">Logistics Progress</span>
+                        <span className="text-brand-white">{shipment.progress}%</span>
+                      </div>
+                      <div className="w-full h-1 bg-brand-white/10 overflow-hidden">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${shipment.progress}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className="h-full bg-brand-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-8">
-                  <div className="space-y-2">
-                    <p className="text-[10px] uppercase tracking-widest text-brand-white/30 font-bold">Asset Type</p>
-                    <p className="text-xl text-brand-white">Tesla Model S Plaid (2024)</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
-                      <span className="text-brand-gold">Logistics Progress</span>
-                      <span className="text-brand-white">68%</span>
-                    </div>
-                    <div className="w-full h-1 bg-brand-white/10 overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: '68%' }}
-                        className="h-full bg-brand-gold shadow-[0_0_10px_rgba(197,160,89,0.5)]"
-                      />
-                    </div>
+                <div className="mt-12 pt-8 border-t border-brand-white/5 flex flex-wrap gap-8">
+                  <div className="flex items-center gap-2">
+                    <Clock size={14} className="text-brand-gold" />
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-brand-white/40">Estimated Arrival:</span>
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-brand-white">{shipment.eta}</span>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+
+            {error && (
+              <motion.div 
+                key="error"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="luxury-glass p-8 border-red-500/30 flex flex-col items-center gap-4 max-w-md mx-auto"
+              >
+                <AlertTriangle size={32} className="text-red-500" />
+                <div className="text-center">
+                  <h3 className="text-brand-white font-display font-medium uppercase tracking-widest">Protocol Failure</h3>
+                  <p className="text-brand-white/40 text-xs mt-2 leading-relaxed">No asset found with tracking ID: <span className="text-brand-gold">{trackingId}</span>. Please verify your credentials and retry.</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

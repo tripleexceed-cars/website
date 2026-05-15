@@ -2,7 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { 
   User, LayoutDashboard, Package, Heart, Settings, 
   LogOut, Plus, Edit, Trash2, CheckCircle, Clock, Truck, Ship, Home as HomeIcon,
-  ArrowRight, Shield
+  ArrowRight, Shield, Search, Filter, Anchor
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +15,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   
   // State
-  const [vehicles, setVehicles] = useState(MOCK_VEHICLES);
+  const [vehicles, setVehicles] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [shipments, setShipments] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -25,11 +25,13 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [b, s, c] = await Promise.all([
+        const [v, b, s, c] = await Promise.all([
+          supabaseService.getVehicles(),
           supabaseService.getBookings(),
           supabaseService.getShipments(),
           supabaseService.getCustomers()
         ]);
+        setVehicles(v.length > 0 ? v : MOCK_VEHICLES);
         setBookings(b);
         setShipments(s);
         setCustomers(c);
@@ -131,6 +133,63 @@ export default function Dashboard() {
                   ))}
                 </div>
               </div>
+
+              <div className="luxury-glass p-10 space-y-8">
+                <h3 className="text-xl font-display font-medium uppercase tracking-widest flex items-center gap-4">
+                  <Ship size={20} className="text-brand-gold" />
+                  Active Shipments
+                </h3>
+                <div className="space-y-6">
+                  {shipments.slice(0, 4).map((s, i) => (
+                    <div key={i} className="space-y-4 py-4 border-b border-brand-white/5 last:border-0">
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm font-display font-medium text-brand-white">{s.vehicleName}</p>
+                        <span className="text-[10px] text-brand-gold font-bold uppercase tracking-widest">{s.progress}%</span>
+                      </div>
+                      <div className="w-full h-[2px] bg-brand-white/5 overflow-hidden">
+                        <div className="h-full bg-brand-gold" style={{ width: `${s.progress}%` }} />
+                      </div>
+                      <p className="text-[9px] text-brand-white/30 uppercase tracking-widest flex items-center gap-2">
+                        <Anchor size={10} /> {s.location}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'inventory':
+        return (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex justify-between items-end">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <span className="w-8 h-[1px] bg-brand-gold" />
+                  <span className="text-brand-gold uppercase tracking-[0.4em] text-[10px] font-bold">Asset Control</span>
+                </div>
+                <h2 className="text-4xl font-display font-medium">Fleet Inventory</h2>
+              </div>
+              <button className="btn-premium-filled py-3 px-8 flex items-center gap-3">
+                <Plus size={18} /> Add Asset
+              </button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {vehicles.map(vehicle => (
+                <div key={vehicle.id} className="luxury-glass overflow-hidden group">
+                  <div className="aspect-[16/9] bg-brand-white/5 relative overflow-hidden">
+                    <img src={vehicle.images?.[0]} alt={vehicle.name} className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700" />
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      <button className="p-2 bg-brand-black/80 backdrop-blur-md text-brand-gold hover:bg-brand-gold hover:text-black transition-all"><Edit size={14} /></button>
+                      <button className="p-2 bg-brand-black/80 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash2 size={14} /></button>
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <h4 className="text-brand-white font-display font-medium">{vehicle.name}</h4>
+                    <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-2">GH₵ {vehicle.priceGHS?.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -187,6 +246,111 @@ export default function Dashboard() {
                             </button>
                           )}
                           <button className="text-[9px] uppercase tracking-widest font-bold text-red-500/50 hover:text-red-500 transition-all">Void</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      case 'logistics':
+        return (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <span className="w-8 h-[1px] bg-brand-gold" />
+                <span className="text-brand-gold uppercase tracking-[0.4em] text-[10px] font-bold">Global Supply Chain</span>
+              </div>
+              <h2 className="text-4xl font-display font-medium">Active Logistics</h2>
+            </div>
+            <div className="grid grid-cols-1 gap-8">
+              {shipments.map((shipment) => (
+                <div key={shipment.id} className="luxury-glass p-8 space-y-8 group">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <Ship size={16} className="text-brand-gold" />
+                        <span className="text-[10px] text-brand-white/40 uppercase tracking-widest font-bold">{shipment.trackingId}</span>
+                      </div>
+                      <h3 className="text-2xl font-display font-medium text-brand-white">{shipment.vehicleName}</h3>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mb-1">Current Protocol</p>
+                      <p className="text-xl text-brand-white">{shipment.status}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
+                      <span className="text-brand-white/40">Transit Progress</span>
+                      <span className="text-brand-gold">{shipment.progress}%</span>
+                    </div>
+                    <div className="w-full h-1 bg-brand-white/5 overflow-hidden">
+                      <div className="h-full bg-brand-gold" style={{ width: `${shipment.progress}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-8 border-t border-brand-white/5">
+                    <div className="flex items-center gap-3">
+                      <Anchor size={14} className="text-brand-gold" />
+                      <span className="text-xs text-brand-white/60">{shipment.location}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Clock size={14} className="text-brand-gold" />
+                      <span className="text-xs text-brand-white/60">ETA: {shipment.eta}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'users':
+        return (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex justify-between items-end">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <span className="w-8 h-[1px] bg-brand-gold" />
+                  <span className="text-brand-gold uppercase tracking-[0.4em] text-[10px] font-bold">Client Directory</span>
+                </div>
+                <h2 className="text-4xl font-display font-medium">VIP Clients</h2>
+              </div>
+              <button className="btn-premium-filled py-3 px-8 flex items-center gap-3">
+                <Plus size={18} /> Onboard Client
+              </button>
+            </div>
+            <div className="luxury-glass overflow-hidden">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-brand-white/5 text-[10px] uppercase tracking-[0.3em] font-bold text-brand-gold">
+                    <th className="p-6">Client Name</th>
+                    <th className="p-6">Contact Registry</th>
+                    <th className="p-6">Tier</th>
+                    <th className="p-6">Joined At</th>
+                    <th className="p-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brand-white/5">
+                  {customers.map((customer) => (
+                    <tr key={customer.id} className="group hover:bg-brand-white/5 transition-colors">
+                      <td className="p-6 font-display font-medium text-brand-white">{customer.name}</td>
+                      <td className="p-6">
+                        <div className="space-y-1">
+                          <p className="text-xs text-brand-white">{customer.email}</p>
+                          <p className="text-[10px] text-brand-white/30">{customer.phone}</p>
+                        </div>
+                      </td>
+                      <td className="p-6">
+                        <span className="px-3 py-1 bg-brand-gold/10 text-brand-gold text-[9px] font-bold uppercase tracking-widest border border-brand-gold/20">
+                          {customer.tier}
+                        </span>
+                      </td>
+                      <td className="p-6 text-xs text-brand-white/40">{new Date(customer.joinedAt).toLocaleDateString()}</td>
+                      <td className="p-6 text-right">
+                        <div className="flex items-center justify-end space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="text-brand-gold hover:text-white transition-colors"><Edit size={16} /></button>
+                          <button className="text-red-500/50 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                         </div>
                       </td>
                     </tr>

@@ -116,6 +116,17 @@ export const supabaseService = {
     return mapShipment(data[0]);
   },
 
+  async getShipmentByTrackingId(trackingId: string) {
+    const { data, error } = await supabase
+      .from('shipments')
+      .select('*')
+      .ilike('tracking_id', trackingId)
+      .single();
+    
+    if (error) return null;
+    return mapShipment(data);
+  },
+
   // Customers
   async getCustomers() {
     const { data, error } = await supabase

@@ -4,6 +4,7 @@ export const SITE_TAGLINE = 'Luxury Vehicle Importation Excellence';
 export const NAVIGATION = [
   { name: 'Fleet', href: '/marketplace' },
   { name: 'Services', href: '/services' },
+  { name: 'Logistics', href: '/logistics' },
   { name: 'Process', href: '/how-it-works' },
   { name: 'About', href: '/about' },
   { name: 'Track', href: '/track' },
