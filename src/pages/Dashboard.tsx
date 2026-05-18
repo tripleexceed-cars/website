@@ -130,6 +130,16 @@ export default function Dashboard() {
     }
   };
 
+  const handleResetStaffPassword = async (id: string, name: string) => {
+    const tempCode = `TX-TEMP-${Math.floor(1000 + Math.random() * 9000)}`;
+    if (confirm(`Generate temporary access code for ${name}?\n\nCode: ${tempCode}\n\nUpon first successful login, the system will mandate a permanent password change.`)) {
+      await supabaseService.resetStaffPassword(id, tempCode);
+      const updated = await supabaseService.getStaffUsers();
+      setStaffList(updated);
+      alert(`Temporary key successfully established for ${name}.\nKey: ${tempCode}`);
+    }
+  };
+
   const handleDeleteVehicle = async (id: string) => {
     if (confirm('Delete this fleet asset?')) {
       await supabaseService.deleteVehicle(id);
@@ -584,6 +594,12 @@ export default function Dashboard() {
                       </td>
                       <td className="p-6 text-right">
                         <div className="flex items-center justify-end space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleResetStaffPassword(member.id, member.name)}
+                            className="text-amber-500/80 hover:text-amber-500 text-xs uppercase tracking-widest font-bold transition-colors flex items-center gap-1.5"
+                          >
+                            <Key size={14} /> Reset Key
+                          </button>
                           <button 
                             onClick={() => handleDeleteStaff(member.id)}
                             className="text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-bold transition-colors flex items-center gap-2"

@@ -364,6 +364,34 @@ export const supabaseService = {
     return updatedUser;
   },
 
+  async resetStaffPassword(id: string, tempCode: string) {
+    const list = await this.getStaffUsers();
+    const user = list.find((u: any) => u.id === id);
+    if (!user) throw new Error('User not found');
+
+    const updatedUser = {
+      ...user,
+      tempPassword: tempCode,
+      passwordHash: tempCode,
+      isFirstLogin: true,
+      status: 'Pending Reset' as const
+    };
+
+    const updatedList = list.map((u: any) => u.id === id ? updatedUser : u);
+    localStorage.setItem('te_staff_users', JSON.stringify(updatedList));
+
+    try {
+      await supabase.from('staff_users').update({
+        temp_password: tempCode,
+        password_hash: tempCode,
+        is_first_login: true,
+        status: 'Pending Reset'
+      }).eq('id', id);
+    } catch (_) {}
+
+    return updatedUser;
+  },
+
   async verifyStaffLogin(email: string, passwordAttempt: string) {
     const list = await this.getStaffUsers();
     const user = list.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
