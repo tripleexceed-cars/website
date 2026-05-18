@@ -42,19 +42,21 @@ export default function Dashboard() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [backupLoading, setBackupLoading] = useState(false);
   const [lastBackup, setLastBackup] = useState(new Date().toLocaleString());
+  const [savingProtocols, setSavingProtocols] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [v, b, s, c, st, inq] = await Promise.all([
+        const [v, b, s, c, st, inq, proto] = await Promise.all([
           supabaseService.getVehicles(),
           supabaseService.getBookings(),
           supabaseService.getShipments(),
           supabaseService.getCustomers(),
           supabaseService.getStaffUsers(),
-          supabaseService.getInquiries()
+          supabaseService.getInquiries(),
+          supabaseService.getProtocols()
         ]);
         setVehicles(v.length > 0 ? v : MOCK_VEHICLES);
         setBookings(b);
@@ -62,6 +64,9 @@ export default function Dashboard() {
         setCustomers(c);
         setStaffList(st);
         setInquiries(inq);
+        setExchangeRate(proto.exchangeRate);
+        setInspectionFee(proto.inspectionFee);
+        setMaintenanceMode(proto.maintenanceMode);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
@@ -177,6 +182,32 @@ export default function Dashboard() {
       await supabaseService.deleteInquiry(id);
       setInquiries(prev => prev.filter(i => i.id !== id));
     }
+  };
+
+  const handleSaveProtocols = async () => {
+    setSavingProtocols(true);
+    try {
+      await supabaseService.updateProtocols({
+        exchangeRate,
+        inspectionFee,
+        maintenanceMode
+      });
+      alert('Fiscal and security protocols successfully synchronized to Supabase Cloud Core.');
+    } catch (err) {
+      alert('Failed to synchronize protocols.');
+    } finally {
+      setSavingProtocols(false);
+    }
+  };
+
+  const handleToggleMaintenance = async () => {
+    const nextVal = !maintenanceMode;
+    setMaintenanceMode(nextVal);
+    await supabaseService.updateProtocols({
+      exchangeRate,
+      inspectionFee,
+      maintenanceMode: nextVal
+    });
   };
 
   const renderContent = () => {
@@ -797,10 +828,12 @@ export default function Dashboard() {
                   </div>
 
                   <button 
-                    onClick={() => alert('Fiscal protocols successfully synchronized across all operational hubs.')}
+                    disabled={savingProtocols}
+                    onClick={handleSaveProtocols}
                     className="w-full btn-premium-filled py-3.5 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2"
                   >
-                    <Save size={16} /> Update Financial Pegs
+                    <Save size={16} className={savingProtocols ? 'animate-spin' : ''} /> 
+                    {savingProtocols ? 'Synchronizing Core...' : 'Update Financial Pegs'}
                   </button>
                 </div>
               </div>
@@ -819,7 +852,7 @@ export default function Dashboard() {
                       <p className="text-[10px] text-brand-silver">Restricts client-side marketplace reservations during scheduled inventory updates.</p>
                     </div>
                     <button 
-                      onClick={() => setMaintenanceMode(!maintenanceMode)}
+                      onClick={handleToggleMaintenance}
                       className={`px-4 py-2 text-xs uppercase tracking-widest font-bold transition-all ${
                         maintenanceMode ? 'bg-red-500 text-white font-extrabold' : 'bg-brand-gold text-brand-black font-extrabold'
                       }`}

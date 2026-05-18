@@ -135,3 +135,20 @@ CREATE POLICY "Allow public read access on inquiries" ON public.inquiries FOR SE
 CREATE POLICY "Allow public insert on inquiries" ON public.inquiries FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update on inquiries" ON public.inquiries FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete on inquiries" ON public.inquiries FOR DELETE USING (true);
+
+-- 7. PROTOCOLS TABLE (Global System Settings & Exchange Pegs)
+CREATE TABLE IF NOT EXISTS public.protocols (
+    id TEXT PRIMARY KEY,
+    exchange_rate NUMERIC NOT NULL DEFAULT 15.80,
+    inspection_fee NUMERIC NOT NULL DEFAULT 2500,
+    maintenance_mode BOOLEAN NOT NULL DEFAULT false,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+INSERT INTO public.protocols (id, exchange_rate, inspection_fee, maintenance_mode)
+VALUES ('system_cfg', 15.80, 2500, false)
+ON CONFLICT (id) DO NOTHING;
+
+ALTER TABLE public.protocols ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access on protocols" ON public.protocols FOR SELECT USING (true);
+CREATE POLICY "Allow public update on protocols" ON public.protocols FOR UPDATE USING (true);

@@ -514,5 +514,39 @@ export const supabaseService = {
     try {
       await supabase.from('inquiries').delete().eq('id', id);
     } catch (_) {}
+  },
+
+  async getProtocols() {
+    const defaultCfg = { exchangeRate: 15.80, inspectionFee: 2500, maintenanceMode: false };
+    try {
+      const { data, error } = await supabase.from('protocols').select('*').eq('id', 'system_cfg').single();
+      if (!error && data) {
+        const mapped = {
+          exchangeRate: Number(data.exchange_rate),
+          inspectionFee: Number(data.inspection_fee),
+          maintenanceMode: Boolean(data.maintenance_mode)
+        };
+        localStorage.setItem('te_protocols', JSON.stringify(mapped));
+        return mapped;
+      }
+    } catch (_) {}
+
+    const local = localStorage.getItem('te_protocols');
+    if (local) return JSON.parse(local);
+
+    localStorage.setItem('te_protocols', JSON.stringify(defaultCfg));
+    return defaultCfg;
+  },
+
+  async updateProtocols(cfg: { exchangeRate: number; inspectionFee: number; maintenanceMode: boolean }) {
+    localStorage.setItem('te_protocols', JSON.stringify(cfg));
+    try {
+      await supabase.from('protocols').update({
+        exchange_rate: cfg.exchangeRate,
+        inspection_fee: cfg.inspectionFee,
+        maintenance_mode: cfg.maintenanceMode,
+        updated_at: new Date().toISOString()
+      }).eq('id', 'system_cfg');
+    } catch (_) {}
   }
 };
