@@ -40,6 +40,10 @@ export default function Dashboard() {
   const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
 
+  // Logistics Editing State
+  const [editingEtaId, setEditingEtaId] = useState<string | null>(null);
+  const [etaVal, setEtaVal] = useState('');
+
   // Protocols & Settings State
   const [exchangeRate, setExchangeRate] = useState(15.80);
   const [inspectionFee, setInspectionFee] = useState(2500);
@@ -214,40 +218,40 @@ export default function Dashboard() {
     });
   };
 
-  const handleAdvanceShipment = async (shipment: any) => {
-    let nextProgress = shipment.progress + 25;
-    let nextStatus = shipment.status;
-    let nextLocation = shipment.location;
-    let nextEta = shipment.eta;
+  const STAGES = [
+    { label: 'Stage 1: Origin Port / Packaged', progress: 10, status: 'Packaged at Origin Hub', location: 'Port of Origin (Houston / Shenzhen / Bremerhaven)' },
+    { label: 'Stage 2: Maritime Vessel Transit', progress: 35, status: 'Maritime Transit (Atlantic Hub)', location: 'Coordinates 24.5N, 45.1W' },
+    { label: 'Stage 3: Customs Escrow & Clearance', progress: 60, status: 'Customs Clearance', location: 'Port of Tema, Ghana' },
+    { label: 'Stage 4: Final Inspection & Detail', progress: 85, status: 'Final Inspection & Escrow', location: 'Tema Community 25 Hub' },
+    { label: 'Stage 5: Delivered & Handed Over', progress: 100, status: 'Delivered & Handed Over', location: 'VIP Client Garage / Handed Over' }
+  ];
 
-    if (nextProgress === 35) {
-      nextStatus = 'Maritime Transit (Atlantic Hub)';
-      nextLocation = 'Coordinates 24.5N, 45.1W';
-      nextEta = '14 Days';
-    } else if (nextProgress === 60) {
-      nextStatus = 'Customs Clearance';
-      nextLocation = 'Port of Tema, Ghana';
-      nextEta = '3 Days';
-    } else if (nextProgress === 85) {
-      nextStatus = 'Final Inspection & Escrow';
-      nextLocation = 'Tema Community 25 Hub';
-      nextEta = '24 Hours';
-    } else if (nextProgress >= 100) {
-      nextProgress = 100;
-      nextStatus = 'Delivered & Handed Over';
-      nextLocation = 'VIP Client Garage / Handed Over';
-      nextEta = 'Completed';
-    }
-
-    await supabaseService.updateShipment(shipment.id, {
-      progress: nextProgress,
-      location: nextLocation,
-      status: nextStatus,
+  const handleStageChange = async (shipmentId: string, stageIndex: number) => {
+    const stage = STAGES[stageIndex];
+    let nextEta = stageIndex === 0 ? '24 Days' : stageIndex === 1 ? '14 Days' : stageIndex === 2 ? '3 Days' : stageIndex === 3 ? '24 Hours' : 'Completed';
+    
+    await supabaseService.updateShipment(shipmentId, {
+      progress: stage.progress,
+      status: stage.status,
+      location: stage.location,
       eta: nextEta
     });
-
     const updated = await supabaseService.getShipments();
     setShipments(updated);
+  };
+
+  const handleSaveEta = async (shipmentId: string, newEta: string) => {
+    const target = shipments.find(s => s.id === shipmentId);
+    if (!target) return;
+    await supabaseService.updateShipment(shipmentId, {
+      progress: target.progress,
+      status: target.status,
+      location: target.location,
+      eta: newEta
+    });
+    const updated = await supabaseService.getShipments();
+    setShipments(updated);
+    setEditingEtaId(null);
   };
 
   const renderContent = () => {
@@ -478,54 +482,97 @@ export default function Dashboard() {
               </div>
               <h2 className="text-4xl font-display font-medium">Active Logistics</h2>
             </div>
-            <div className="grid grid-cols-1 gap-8">
-              {shipments.map((shipment) => (
-                <div key={shipment.id} className="luxury-glass p-8 space-y-8 group">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <Ship size={16} className="text-brand-gold" />
-                        <span className="text-[10px] text-brand-white/40 uppercase tracking-widest font-bold">{shipment.trackingId}</span>
+            <div className="grid grid-cols-1 gap-6">
+              {shipments.map((shipment) => {
+                const currentStageIdx = STAGES.findIndex(s => s.progress >= shipment.progress);
+                const stageIdx = currentStageIdx === -1 ? 0 : currentStageIdx;
+
+                return (
+                  <div key={shipment.id} className="luxury-glass p-6 space-y-5 border border-brand-gold/20 hover:border-brand-gold/40 transition-all font-mono">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-brand-white/10 pb-4 font-display">
+                      <div className="space-y-1 font-mono">
+                        <div className="flex items-center gap-3">
+                          <Ship size={14} className="text-brand-gold" />
+                          <span className="text-[10px] text-brand-gold uppercase tracking-widest font-bold">{shipment.trackingId}</span>
+                        </div>
+                        <h3 className="text-xl font-display font-medium text-brand-white">{shipment.vehicleName}</h3>
                       </div>
-                      <h3 className="text-2xl font-display font-medium text-brand-white">{shipment.vehicleName}</h3>
+                      
+                      {user?.role !== 'client' && (
+                        <div className="flex items-center gap-3 w-full md:w-auto font-mono">
+                          <span className="text-[10px] text-brand-white/40 uppercase tracking-widest font-bold">Stage:</span>
+                          <select
+                            value={stageIdx}
+                            onChange={(e) => handleStageChange(shipment.id, Number(e.target.value))}
+                            className="bg-brand-black border border-brand-gold/30 text-brand-white text-xs px-3 py-2 outline-none cursor-pointer flex-1 md:flex-initial"
+                          >
+                            {STAGES.map((s, i) => (
+                              <option key={i} value={i} className="bg-brand-black text-brand-white text-xs font-mono">
+                                {s.label} ({s.progress}%)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-right">
-                      <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mb-1">Current Protocol</p>
-                      <p className="text-xl text-brand-white">{shipment.status}</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
-                      <span className="text-brand-white/40">Transit Progress</span>
-                      <span className="text-brand-gold">{shipment.progress}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-brand-white/5 overflow-hidden">
-                      <div className="h-full bg-brand-gold" style={{ width: `${shipment.progress}%` }} />
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-8 border-t border-brand-white/5 font-mono">
-                    <div className="flex flex-wrap items-center gap-6">
-                      <div className="flex items-center gap-3">
-                        <Anchor size={14} className="text-brand-gold" />
-                        <span className="text-xs text-brand-white/80">{shipment.location}</span>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs pt-1 font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-gold animate-pulse" />
+                        <span className="text-brand-white/40 uppercase tracking-wider text-[10px]">Status:</span>
+                        <span className="text-brand-white font-bold">{shipment.status}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <Clock size={14} className="text-brand-gold" />
-                        <span className="text-xs text-brand-white/80 font-bold">ETA: {shipment.eta}</span>
+                      <div className="flex items-center gap-2">
+                        <Anchor size={12} className="text-brand-gold" />
+                        <span className="text-brand-white/40 uppercase tracking-wider text-[10px]">Location:</span>
+                        <span className="text-brand-white truncate font-bold">{shipment.location}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={12} className="text-brand-gold" />
+                        <span className="text-brand-white/40 uppercase tracking-wider text-[10px]">ETA:</span>
+                        {editingEtaId === shipment.id ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={etaVal}
+                              onChange={(e) => setEtaVal(e.target.value)}
+                              className="bg-brand-white/10 border border-brand-gold/50 px-2 py-1 text-xs text-brand-white outline-none w-24 font-mono"
+                              autoFocus
+                            />
+                            <button
+                              onClick={() => handleSaveEta(shipment.id, etaVal)}
+                              className="bg-brand-gold text-brand-black px-2 py-1 font-bold text-[10px] uppercase font-mono"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingEtaId(null)}
+                              className="text-brand-silver/50 hover:text-brand-white text-[10px] font-mono"
+                            >
+                              [X]
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { setEditingEtaId(shipment.id); setEtaVal(shipment.eta); }}>
+                            <span className="text-brand-gold font-bold group-hover:underline">{shipment.eta}</span>
+                            <span className="text-[9px] text-brand-white/30 group-hover:text-brand-white/80">(Click to edit)</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {user?.role !== 'client' && shipment.progress < 100 && (
-                      <button 
-                        onClick={() => handleAdvanceShipment(shipment)}
-                        className="bg-brand-white/10 hover:bg-brand-gold hover:text-brand-black text-brand-white text-[10px] uppercase tracking-widest font-bold py-2.5 px-5 transition-all border border-brand-white/20 hover:border-brand-gold font-display"
-                      >
-                        Advance Telemetry (+25%)
-                      </button>
-                    )}
+                    <div className="space-y-1.5 pt-2">
+                      <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
+                        <span className="text-brand-white/40">Logistics Progress</span>
+                        <span className="text-brand-gold">{shipment.progress}%</span>
+                      </div>
+                      <div className="w-full h-1 bg-brand-white/10 overflow-hidden">
+                        <div className="h-full bg-brand-gold transition-all duration-500" style={{ width: `${shipment.progress}%` }} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
