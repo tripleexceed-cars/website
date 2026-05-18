@@ -36,6 +36,10 @@ export default function Dashboard() {
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
 
+  // Booking Modal State
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+
   // Protocols & Settings State
   const [exchangeRate, setExchangeRate] = useState(15.80);
   const [inspectionFee, setInspectionFee] = useState(2500);
@@ -365,7 +369,14 @@ export default function Dashboard() {
                 </thead>
                 <tbody className="divide-y divide-brand-white/5">
                   {bookings.map((booking) => (
-                    <tr key={booking.id} className="group hover:bg-brand-white/5 transition-colors">
+                    <tr 
+                      key={booking.id} 
+                      onClick={() => {
+                        setSelectedBooking(booking);
+                        setShowBookingModal(true);
+                      }}
+                      className="group hover:bg-brand-white/5 transition-colors cursor-pointer"
+                    >
                       <td className="p-6 text-xs font-mono text-brand-white/60">{booking.id}</td>
                       <td className="p-6 font-display font-medium text-brand-white">{booking.vehicleName}</td>
                       <td className="p-6">
@@ -382,15 +393,36 @@ export default function Dashboard() {
                       </td>
                       <td className="p-6 text-right">
                         <div className="flex items-center justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedBooking(booking);
+                              setShowBookingModal(true);
+                            }}
+                            className="text-[9px] uppercase tracking-widest font-bold bg-brand-white/10 text-brand-white px-3 py-1 border border-brand-white/20 hover:bg-brand-white/20 transition-all flex items-center gap-1.5 font-mono"
+                          >
+                            <Search size={12} /> Dossier
+                          </button>
                           {booking.status !== 'Confirmed' && (
                             <button 
-                              onClick={() => handleApproveBooking(booking.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleApproveBooking(booking.id);
+                              }}
                               className="text-[9px] uppercase tracking-widest font-bold bg-green-500/10 text-green-500 px-3 py-1 border border-green-500/20 hover:bg-green-500/20 transition-all"
                             >
                               Approve
                             </button>
                           )}
-                          <button className="text-[9px] uppercase tracking-widest font-bold text-red-500/50 hover:text-red-500 transition-all">Void</button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              alert('Protocol voided.');
+                            }}
+                            className="text-[9px] uppercase tracking-widest font-bold text-red-500/50 hover:text-red-500 transition-all"
+                          >
+                            Void
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -966,6 +998,91 @@ export default function Dashboard() {
           onSave={handleSaveVehicle} 
           vehicle={selectedVehicle} 
         />
+
+        <AnimatePresence>
+          {showBookingModal && selectedBooking && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-brand-black/80 backdrop-blur-md">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="luxury-glass p-10 max-w-2xl w-full space-y-8 relative border border-brand-gold/30"
+              >
+                <div className="flex justify-between items-start pb-6 border-b border-brand-white/10">
+                  <div>
+                    <span className="text-[10px] font-mono text-brand-gold uppercase tracking-widest font-bold">VIP Sourcing Dossier</span>
+                    <h3 className="text-3xl font-display font-medium text-brand-white mt-1">{selectedBooking.vehicleName}</h3>
+                  </div>
+                  <button 
+                    onClick={() => setShowBookingModal(false)}
+                    className="p-2 border border-brand-white/10 hover:border-brand-gold text-brand-silver hover:text-brand-gold transition-all font-mono text-xs"
+                  >
+                    [ESC]
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-xs font-mono">
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-gold">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Protocol Identifier</p>
+                    <p className="text-brand-white font-bold text-sm">{selectedBooking.id}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-gold">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Agreed Asset Valuation</p>
+                    <p className="text-brand-gold font-bold text-sm">GH₵ {selectedBooking.vehiclePrice?.toLocaleString()}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-white/20">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Client Identity</p>
+                    <p className="text-brand-white font-bold">{selectedBooking.customerName}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-white/20">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Secure Contact Phone</p>
+                    <p className="text-brand-white font-bold">{selectedBooking.phone || '+233 24 314 5384'}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-white/20">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Email Protocol</p>
+                    <p className="text-brand-white">{selectedBooking.email}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-white/20">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">National ID / Passport Verification</p>
+                    <p className="text-brand-white font-bold">{selectedBooking.idNumber || 'VERIFIED (Tier-1 KYC)'}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-brand-white/20">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Timestamp</p>
+                    <p className="text-brand-white/80">{new Date(selectedBooking.created_at || Date.now()).toLocaleString()}</p>
+                  </div>
+                  <div className="space-y-2 bg-brand-white/5 p-4 border-l-2 border-green-500">
+                    <p className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Escrow & Clearance Status</p>
+                    <span className={`inline-block px-3 py-1 text-[10px] uppercase tracking-widest font-bold ${
+                      selectedBooking.status === 'Confirmed' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-brand-gold/10 text-brand-gold border border-brand-gold/20'
+                    }`}>
+                      {selectedBooking.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-brand-white/10 flex justify-end gap-4">
+                  {selectedBooking.status !== 'Confirmed' && (
+                    <button 
+                      onClick={() => {
+                        handleApproveBooking(selectedBooking.id);
+                        setSelectedBooking(prev => prev ? { ...prev, status: 'Confirmed' } : null);
+                      }}
+                      className="bg-green-500 text-brand-black px-6 py-3 font-bold uppercase tracking-widest text-xs hover:bg-green-400 transition-all flex items-center gap-2"
+                    >
+                      <CheckCircle size={16} /> Approve Reservation Protocol
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setShowBookingModal(false)}
+                    className="border border-brand-white/20 hover:border-brand-white px-6 py-3 font-bold uppercase tracking-widest text-xs text-brand-white transition-all"
+                  >
+                    Close Dossier
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
