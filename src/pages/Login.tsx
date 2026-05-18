@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ArrowRight, Mail, Lock, Key } from 'lucide-react';
+import { Shield, ArrowRight, Mail, Lock, Key, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabaseService } from '../lib/supabaseService';
 
@@ -9,12 +9,15 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   // Mandatory First-Login Reset state
   const [requireReset, setRequireReset] = useState(false);
   const [pendingUser, setPendingUser] = useState<any>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -112,13 +115,20 @@ export default function Login() {
                 <div className="relative">
                   <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-white/20" size={16} />
                   <input 
-                    type="password" 
+                    type={showNewPassword ? "text" : "password"} 
                     required
-                    className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-4 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
+                    className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-12 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
                     placeholder="••••••••"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                   />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-white/40 hover:text-brand-gold transition-colors p-1"
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
               <div className="space-y-2">
@@ -126,13 +136,20 @@ export default function Login() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-white/20" size={16} />
                   <input 
-                    type="password" 
+                    type={showConfirmPassword ? "text" : "password"} 
                     required
-                    className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-4 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
+                    className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-12 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
                     placeholder="••••••••"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                   />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-white/40 hover:text-brand-gold transition-colors p-1"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
               <button 
@@ -177,13 +194,20 @@ export default function Login() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-white/20" size={16} />
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     required
-                    className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-4 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
+                    className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-12 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-white/40 hover:text-brand-gold transition-colors p-1"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
 

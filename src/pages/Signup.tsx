@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { UserPlus, ArrowRight, Mail, Lock, User } from 'lucide-react';
+import { UserPlus, ArrowRight, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Signup() {
@@ -9,6 +9,7 @@ export default function Signup() {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -80,13 +81,20 @@ export default function Signup() {
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-white/20" size={16} />
               <input 
-                type="password" 
+                type={showPassword ? "text" : "password"} 
                 required
-                className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-4 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
+                className="w-full bg-brand-white/5 border border-brand-white/5 py-4 pl-12 pr-12 text-xs tracking-widest focus:outline-none focus:border-brand-gold/50 transition-all text-brand-white"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-white/40 hover:text-brand-gold transition-colors p-1"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
