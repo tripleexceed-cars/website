@@ -64,13 +64,12 @@ CREATE TABLE IF NOT EXISTS public.bookings (
 CREATE TABLE IF NOT EXISTS public.shipments (
     id TEXT PRIMARY KEY,
     tracking_id TEXT UNIQUE NOT NULL,
-    booking_id TEXT REFERENCES public.bookings(id) ON DELETE SET NULL,
     vehicle_name TEXT NOT NULL,
-    current_location TEXT NOT NULL,
-    destination TEXT NOT NULL,
     status TEXT NOT NULL,
-    vessel_name TEXT NOT NULL,
-    estimated_arrival DATE NOT NULL,
+    location TEXT NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 10,
+    customer_email TEXT,
+    eta TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

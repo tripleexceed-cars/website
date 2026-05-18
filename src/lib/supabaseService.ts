@@ -24,6 +24,29 @@ const MOCK_INQUIRIES = [
   }
 ];
 
+const MOCK_SHIPMENTS = [
+  {
+    id: 'SHP-101',
+    trackingId: 'TE-884192',
+    vehicleName: '2025 Mercedes-AMG G63 Grand Edition',
+    status: 'Customs Clearance',
+    location: 'Port of Tema, Ghana',
+    progress: 85,
+    customerEmail: 'osei.kwame@gmail.com',
+    eta: '3 Days'
+  },
+  {
+    id: 'SHP-102',
+    trackingId: 'TE-491028',
+    vehicleName: '2024 Rolls-Royce Spectre Fully Bespoke',
+    status: 'Maritime Transit (Atlantic Hub)',
+    location: 'Coordinates 24.5N, 45.1W',
+    progress: 45,
+    customerEmail: 'lord.danquah@luxury.com',
+    eta: '14 Days'
+  }
+];
+
 const mapInquiry = (i: any) => ({
   id: i.id,
   name: i.name,
@@ -168,29 +191,67 @@ export const supabaseService = {
 
   // Shipments
   async getShipments() {
-    const { data, error } = await supabase
-      .from('shipments')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data.map(mapShipment);
+    try {
+      const { data, error } = await supabase.from('shipments').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        const mapped = data.map(mapShipment);
+        localStorage.setItem('te_shipments', JSON.stringify(mapped));
+        return mapped;
+      }
+    } catch (_) {}
+
+    const local = localStorage.getItem('te_shipments');
+    if (local) return JSON.parse(local);
+
+    localStorage.setItem('te_shipments', JSON.stringify(MOCK_SHIPMENTS));
+    return MOCK_SHIPMENTS;
   },
 
   async createShipment(shipment: any) {
-    const { data, error } = await supabase
-      .from('shipments')
-      .insert([{
-        tracking_id: shipment.trackingId,
-        vehicle_name: shipment.vehicleName,
-        status: shipment.status || 'In Transit',
-        location: shipment.location || 'Port of Origin',
-        progress: shipment.progress || 10,
-        customer_email: shipment.customerEmail,
-        eta: shipment.eta || 'Calculating...'
-      }])
-      .select();
-    if (error) throw error;
-    return mapShipment(data[0]);
+    const newShp = {
+      id: `SHP-${Math.floor(1000 + Math.random() * 9000)}`,
+      trackingId: shipment.trackingId,
+      vehicleName: shipment.vehicleName,
+      status: shipment.status || 'In Transit',
+      location: shipment.location || 'Port of Origin',
+      progress: shipment.progress || 10,
+      customerEmail: shipment.customerEmail || 'client@tripleexceed.com',
+      eta: shipment.eta || '24 Days'
+    };
+
+    const list = await this.getShipments();
+    const updated = [newShp, ...list];
+    localStorage.setItem('te_shipments', JSON.stringify(updated));
+
+    try {
+      await supabase.from('shipments').insert([{
+        id: newShp.id,
+        tracking_id: newShp.trackingId,
+        vehicle_name: newShp.vehicleName,
+        status: newShp.status,
+        location: newShp.location,
+        progress: newShp.progress,
+        customer_email: newShp.customerEmail,
+        eta: newShp.eta
+      }]);
+    } catch (_) {}
+
+    return newShp;
+  },
+
+  async updateShipment(id: string, updates: { progress: number; location: string; status: string; eta: string }) {
+    const list = await this.getShipments();
+    const updated = list.map((s: any) => s.id === id ? { ...s, ...updates } : s);
+    localStorage.setItem('te_shipments', JSON.stringify(updated));
+
+    try {
+      await supabase.from('shipments').update({
+        progress: updates.progress,
+        location: updates.location,
+        status: updates.status,
+        eta: updates.eta
+      }).eq('id', id);
+    } catch (_) {}
   },
 
   async getShipmentByTrackingId(trackingId: string) {

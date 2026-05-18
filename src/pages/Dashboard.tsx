@@ -214,6 +214,42 @@ export default function Dashboard() {
     });
   };
 
+  const handleAdvanceShipment = async (shipment: any) => {
+    let nextProgress = shipment.progress + 25;
+    let nextStatus = shipment.status;
+    let nextLocation = shipment.location;
+    let nextEta = shipment.eta;
+
+    if (nextProgress === 35) {
+      nextStatus = 'Maritime Transit (Atlantic Hub)';
+      nextLocation = 'Coordinates 24.5N, 45.1W';
+      nextEta = '14 Days';
+    } else if (nextProgress === 60) {
+      nextStatus = 'Customs Clearance';
+      nextLocation = 'Port of Tema, Ghana';
+      nextEta = '3 Days';
+    } else if (nextProgress === 85) {
+      nextStatus = 'Final Inspection & Escrow';
+      nextLocation = 'Tema Community 25 Hub';
+      nextEta = '24 Hours';
+    } else if (nextProgress >= 100) {
+      nextProgress = 100;
+      nextStatus = 'Delivered & Handed Over';
+      nextLocation = 'VIP Client Garage / Handed Over';
+      nextEta = 'Completed';
+    }
+
+    await supabaseService.updateShipment(shipment.id, {
+      progress: nextProgress,
+      location: nextLocation,
+      status: nextStatus,
+      eta: nextEta
+    });
+
+    const updated = await supabaseService.getShipments();
+    setShipments(updated);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
@@ -467,15 +503,26 @@ export default function Dashboard() {
                       <div className="h-full bg-brand-gold" style={{ width: `${shipment.progress}%` }} />
                     </div>
                   </div>
-                  <div className="flex justify-between items-center pt-8 border-t border-brand-white/5">
-                    <div className="flex items-center gap-3">
-                      <Anchor size={14} className="text-brand-gold" />
-                      <span className="text-xs text-brand-white/60">{shipment.location}</span>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pt-8 border-t border-brand-white/5 font-mono">
+                    <div className="flex flex-wrap items-center gap-6">
+                      <div className="flex items-center gap-3">
+                        <Anchor size={14} className="text-brand-gold" />
+                        <span className="text-xs text-brand-white/80">{shipment.location}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Clock size={14} className="text-brand-gold" />
+                        <span className="text-xs text-brand-white/80 font-bold">ETA: {shipment.eta}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Clock size={14} className="text-brand-gold" />
-                      <span className="text-xs text-brand-white/60">ETA: {shipment.eta}</span>
-                    </div>
+
+                    {user?.role !== 'client' && shipment.progress < 100 && (
+                      <button 
+                        onClick={() => handleAdvanceShipment(shipment)}
+                        className="bg-brand-white/10 hover:bg-brand-gold hover:text-brand-black text-brand-white text-[10px] uppercase tracking-widest font-bold py-2.5 px-5 transition-all border border-brand-white/20 hover:border-brand-gold font-display"
+                      >
+                        Advance Telemetry (+25%)
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
