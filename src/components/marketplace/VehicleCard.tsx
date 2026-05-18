@@ -17,10 +17,10 @@ export default function VehicleCard({ vehicle }: { vehicle: any }) {
           
           {/* Badge */}
           <div className="absolute top-4 left-4 flex space-x-2">
-            <span className="px-3 py-1 bg-brand-gold text-brand-black text-[9px] font-bold uppercase tracking-widest">
+            <span className="px-3 py-1 bg-brand-gold text-white text-[9px] font-bold uppercase tracking-widest shadow-md shadow-red-600/20">
               {vehicle.condition}
             </span>
-            <span className="px-3 py-1 bg-brand-black/80 backdrop-blur-md text-brand-gold text-[9px] font-bold uppercase tracking-widest border border-brand-gold/20 flex items-center gap-1">
+            <span className="px-3 py-1 bg-black/80 backdrop-blur-md text-brand-gold text-[9px] font-bold uppercase tracking-widest border border-brand-gold/20 flex items-center gap-1 shadow-md">
               <MapPin size={8} /> {vehicle.sourceCountry}
             </span>
           </div>

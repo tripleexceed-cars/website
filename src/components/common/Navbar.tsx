@@ -30,18 +30,19 @@ export default function Navbar() {
   };
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled ? 'bg-brand-black/95 backdrop-blur-md h-20' : 'bg-transparent h-24'
-      } border-b border-brand-white/10`}
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? 'bg-brand-black/95 backdrop-blur-md h-20' : 'bg-transparent h-24'
+        } border-b border-brand-white/10`}
     >
       <div className="h-full px-6 md:px-10 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-brand-gold rotate-45 flex items-center justify-center">
-            <span className="-rotate-45 font-bold text-black text-[10px] tracking-tighter">TX</span>
-          </div>
-          <span className="text-xl font-bold tracking-tighter uppercase text-brand-white">
+        <Link to="/" className="flex flex-col items-center justify-center group pt-1">
+          <img 
+            src="/images/logo-racing.png" 
+            alt="Triple Exceed Racing Logo" 
+            className="w-36 h-12 object-contain invert brightness-0 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] -mb-2.5"
+          />
+          <span className="text-2xl font-black tracking-tighter uppercase text-brand-white group-hover:text-red-600 transition-colors duration-300 relative z-10">
             Triple <span className="text-brand-gold">Exceed</span>
           </span>
         </Link>
@@ -52,9 +53,8 @@ export default function Navbar() {
             <Link
               key={item.name}
               to={item.href}
-              className={`nav-link hover:text-brand-white ${
-                location.pathname === item.href ? 'text-brand-white border-b border-brand-gold' : 'text-brand-silver'
-              }`}
+              className={`nav-link hover:text-brand-white ${location.pathname === item.href ? 'text-brand-white border-b border-brand-gold' : 'text-brand-silver'
+                }`}
             >
               {item.name}
             </Link>
@@ -63,7 +63,7 @@ export default function Navbar() {
 
         {/* Actions */}
         <div className="hidden lg:flex items-center space-x-6">
-          <button 
+          <button
             onClick={() => setIsSearchOpen(true)}
             className="text-brand-silver hover:text-brand-white transition-colors"
           >
@@ -72,7 +72,7 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Toggle */}
-        <button 
+        <button
           className="lg:hidden text-brand-white hover:text-brand-gold transition-colors"
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -89,13 +89,13 @@ export default function Navbar() {
             exit={{ opacity: 0, y: -100 }}
             className="fixed inset-0 z-[60] bg-brand-black/98 backdrop-blur-xl flex flex-col items-center justify-center p-6"
           >
-            <button 
+            <button
               onClick={() => setIsSearchOpen(false)}
               className="absolute top-10 right-10 text-brand-white/30 hover:text-brand-white transition-all"
             >
               <X size={32} />
             </button>
-            
+
             <div className="w-full max-w-4xl space-y-12">
               <div className="space-y-4 text-center">
                 <span className="text-brand-gold font-bold uppercase tracking-[0.5em] text-[10px]">Global Discovery</span>
@@ -103,15 +103,15 @@ export default function Navbar() {
               </div>
 
               <form onSubmit={handleSearch} className="relative group">
-                <input 
+                <input
                   autoFocus
-                  type="text" 
+                  type="text"
                   placeholder="Brand, Model, or Specification..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-transparent border-b-2 border-brand-white/10 py-8 text-2xl md:text-4xl text-brand-white font-display focus:outline-none focus:border-brand-gold transition-all placeholder:text-brand-white/5"
                 />
-                <button 
+                <button
                   type="submit"
                   className="absolute right-0 bottom-8 text-brand-gold hover:translate-x-2 transition-transform"
                 >
@@ -121,7 +121,7 @@ export default function Navbar() {
 
               <div className="flex flex-wrap justify-center gap-4">
                 {['Tesla', 'BYD', 'Porsche', 'Toyota', 'Mercedes'].map(tag => (
-                  <button 
+                  <button
                     key={tag}
                     onClick={() => {
                       navigate(`/marketplace?q=${tag}`);

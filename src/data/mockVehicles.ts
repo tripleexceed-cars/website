@@ -22,7 +22,7 @@ export const MOCK_VEHICLES = [
     year: 2024,
     priceGHS: 1850000,
     condition: 'Brand New',
-    sourceCountry: 'Europe',
+    sourceCountry: 'USA',
     mileage: 0,
     fuelType: 'Electric',
     description: 'Soul, electrified. Experience the precision of Porsche in an all-electric package.',

@@ -30,11 +30,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-24">
           {/* Brand */}
           <div className="space-y-8">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-brand-gold rotate-45 flex items-center justify-center">
-                <span className="-rotate-45 font-bold text-black text-xs tracking-tighter">TX</span>
-              </div>
-              <span className="text-2xl font-bold tracking-tighter uppercase text-brand-white">
+            <Link to="/" className="flex flex-col items-start justify-center group pt-1">
+              <img 
+                src="/images/logo-racing.png" 
+                alt="Triple Exceed Racing Logo" 
+                className="w-36 h-12 object-contain invert brightness-0 group-hover:scale-110 transition-transform duration-500 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] -mb-2.5 -ml-2"
+              />
+              <span className="text-2xl font-black tracking-tighter uppercase text-brand-white group-hover:text-red-600 transition-colors duration-300 relative z-10">
                 Triple <span className="text-brand-gold">Exceed</span>
               </span>
             </Link>
@@ -67,8 +69,8 @@ export default function Footer() {
             <h4 className="text-xs uppercase tracking-[0.4em] font-bold text-brand-gold">Global Hub</h4>
             <ul className="space-y-6">
               <li className="flex items-start space-x-4">
-                <MapPin size={18} className="text-brand-gold mt-1" />
-                <span className="text-sm text-brand-silver/60 leading-relaxed">Accra Digital Centre, GH<br />Ring Road West, Accra</span>
+                <MapPin size={18} className="text-brand-gold mt-1 flex-shrink-0" />
+                <span className="text-sm text-brand-silver/60 leading-relaxed">Tema Community 25,<br />Accra. Ghana</span>
               </li>
               <li className="flex items-center space-x-4">
                 <Phone size={18} className="text-brand-gold" />
@@ -76,7 +78,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center space-x-4">
                 <Mail size={18} className="text-brand-gold" />
-                <span className="text-sm text-brand-silver/60">logistics@tripleexceed.com</span>
+                <span className="text-sm text-brand-silver/60">tripleexceed@gmail.com</span>
               </li>
             </ul>
           </div>

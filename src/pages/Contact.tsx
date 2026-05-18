@@ -18,7 +18,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-brand-white/30 font-bold">Email Protocol</p>
-                <p className="text-brand-white">logistics@tripleexceed.com</p>
+                <p className="text-brand-white">tripleexceed@gmail.com</p>
               </div>
             </div>
             <div className="flex items-center gap-6">
@@ -36,7 +36,7 @@ export default function Contact() {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-brand-white/30 font-bold">Global Hub</p>
-                <p className="text-brand-white">Accra Digital Centre, GH</p>
+                <p className="text-brand-white">Tema Community 25, Accra. Ghana</p>
               </div>
             </div>
           </div>

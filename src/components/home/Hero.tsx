@@ -6,12 +6,11 @@ import { useNavigate } from 'react-router-dom';
 export default function Hero() {
   const [source, setSource] = useState<'USA' | 'China'>('USA');
   const [make, setMake] = useState('');
-  const [budget, setBudget] = useState(1500000);
   const navigate = useNavigate();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate(`/marketplace?source=${source}&brand=${make}&budget=${budget}`);
+    navigate(`/marketplace?source=${source}&brand=${make}`);
   };
 
   return (
@@ -19,17 +18,18 @@ export default function Hero() {
       {/* Visual Side */}
       <div className="relative flex-1 h-[50vh] lg:h-auto overflow-hidden">
         <motion.div 
-          initial={{ scale: 1.1, opacity: 0 }}
+          key={source}
+          initial={{ scale: 1.05, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.5 }}
+          transition={{ duration: 0.8 }}
           className="absolute inset-0"
         >
           <img 
             src={source === 'USA' 
               ? "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&q=80&w=2000" 
-              : "https://images.unsplash.com/photo-1555505019-8c3f4c19e07d?auto=format&fit=crop&q=80&w=2000"} 
-            alt="Luxury Automobile" 
-            className="w-full h-full object-cover grayscale-[0.2] brightness-[0.4]"
+              : "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=2000"} 
+            alt="Luxury Automobile Sourcing" 
+            className="w-full h-full object-cover grayscale-[0.2] brightness-[0.45]"
           />
         </motion.div>
         
@@ -46,7 +46,7 @@ export default function Hero() {
               <p className="text-brand-white/40 text-[9px] uppercase tracking-widest mt-1">Delivery Success</p>
             </div>
             <div>
-              <p className="text-brand-white text-2xl font-display font-medium">150+</p>
+              <p className="text-brand-white text-2xl font-display font-medium">10+</p>
               <p className="text-brand-white/40 text-[9px] uppercase tracking-widest mt-1">Global Partners</p>
             </div>
           </div>
@@ -71,28 +71,28 @@ export default function Hero() {
               <span className="gold-gradient">Extraordinary</span>
             </h1>
             
-            <p className="text-brand-silver/60 text-lg leading-relaxed max-w-lg">
+            <p className="text-brand-silver text-lg leading-relaxed max-w-lg">
               Triple Exceed defines the pinnacle of automotive logistics. We source, verify, and deliver luxury assets with absolute precision.
             </p>
           </div>
 
           {/* Sourcing Engine UI */}
           <form onSubmit={handleSearch} className="luxury-glass p-8 space-y-8 relative">
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
                 <label className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-gold">Global Origin</label>
                 <div className="flex bg-brand-white/5 p-1 border border-brand-white/5">
                   <button 
                     type="button"
                     onClick={() => setSource('USA')}
-                    className={`flex-1 py-2 text-[10px] uppercase tracking-widest transition-all ${source === 'USA' ? 'bg-brand-gold text-brand-black font-bold' : 'text-brand-white/40'}`}
+                    className={`flex-1 py-2 text-[10px] uppercase tracking-widest transition-all ${source === 'USA' ? 'bg-brand-gold text-white font-bold shadow-md' : 'text-brand-white/40'}`}
                   >
                     USA
                   </button>
                   <button 
                     type="button"
                     onClick={() => setSource('China')}
-                    className={`flex-1 py-2 text-[10px] uppercase tracking-widest transition-all ${source === 'China' ? 'bg-brand-gold text-brand-black font-bold' : 'text-brand-white/40'}`}
+                    className={`flex-1 py-2 text-[10px] uppercase tracking-widest transition-all ${source === 'China' ? 'bg-brand-gold text-white font-bold shadow-md' : 'text-brand-white/40'}`}
                   >
                     China
                   </button>
@@ -106,25 +106,9 @@ export default function Hero() {
                   placeholder="Brand (e.g. Tesla)"
                   value={make}
                   onChange={(e) => setMake(e.target.value)}
-                  className="w-full bg-brand-white/5 border border-brand-white/5 py-2.5 px-4 text-[10px] uppercase tracking-widest focus:outline-none focus:border-brand-gold/50 text-brand-white"
+                  className="w-full bg-brand-white/5 border border-brand-white/5 py-2.5 px-4 text-[10px] uppercase tracking-widest focus:outline-none focus:border-brand-gold/50 text-brand-white placeholder:text-brand-white/30"
                 />
               </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <label className="text-[10px] uppercase tracking-[0.3em] font-bold text-brand-gold">Budget Protocol (GHS)</label>
-                <span className="text-brand-white text-xs font-display">GH₵ {budget.toLocaleString()}</span>
-              </div>
-              <input 
-                type="range" 
-                min="250000" 
-                max="2500000" 
-                step="50000"
-                value={budget}
-                onChange={(e) => setBudget(Number(e.target.value))}
-                className="w-full h-1 bg-brand-white/10 appearance-none cursor-pointer accent-brand-gold"
-              />
             </div>
 
             <button type="submit" className="w-full btn-premium-filled py-4 flex items-center justify-center space-x-3 group">

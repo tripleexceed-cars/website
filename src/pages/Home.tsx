@@ -12,18 +12,10 @@ export default function Home() {
     <div className="bg-brand-black min-h-screen">
       <Hero />
       
-      {/* Brand Strips - High Fidelity Social Proof */}
-      <section className="py-20 border-b border-brand-white/5 bg-brand-matte/50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-wrap justify-center md:justify-between items-center gap-12 opacity-20">
-            {['TESLA', 'BYD', 'MERCEDES', 'TOYOTA', 'FORD', 'ZEEKR'].map(brand => (
-              <span key={brand} className="text-2xl font-display font-medium tracking-[0.3em] hover:opacity-100 transition-opacity cursor-default">
-                {brand}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+
+
+
+
 
       {/* Featured Fleet */}
       <section className="py-32 px-6 md:px-10">
@@ -103,7 +95,7 @@ export default function Home() {
             <div className="relative aspect-[4/5] luxury-glass p-4 group">
               <img
                 src="/images/process.png"
-                alt="Import Process"
+                alt="Surgical Import Protocol"
                 className="w-full h-full object-cover grayscale brightness-75 transition-all duration-700 group-hover:grayscale-0 group-hover:brightness-100"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60" />
@@ -127,9 +119,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-20">
             {[
-              { label: 'Vehicles Delivered', val: '450+' },
+              { label: 'Vehicles Delivered', val: '20+' },
               { label: 'Client Satisfaction', val: '100%' },
-              { label: 'Global Hubs', val: '04' }
+              { label: 'Global Hubs', val: '02' }
             ].map(stat => (
               <div key={stat.label} className="text-center space-y-4">
                 <p className="text-6xl md:text-8xl font-display font-medium gold-gradient">{stat.val}</p>

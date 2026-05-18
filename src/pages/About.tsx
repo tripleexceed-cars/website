@@ -6,7 +6,7 @@ export default function About() {
     <div className="pt-32 pb-24 bg-brand-black min-h-screen relative overflow-hidden">
       {/* Background Decor */}
       <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-gold/5 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
-      
+
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="space-y-32">
           {/* Hero Section */}
@@ -26,29 +26,29 @@ export default function About() {
               </div>
               <div className="flex gap-8 border-t border-brand-white/5 pt-12">
                 <div>
-                  <p className="text-3xl font-display font-medium text-brand-white">2021</p>
+                  <p className="text-3xl font-display font-medium text-brand-white">2023</p>
                   <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-1">Founded</p>
                 </div>
                 <div className="w-[1px] h-12 bg-brand-white/5" />
                 <div>
-                  <p className="text-3xl font-display font-medium text-brand-white">450+</p>
+                  <p className="text-3xl font-display font-medium text-brand-white">20+</p>
                   <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-1">Assets Delivered</p>
                 </div>
                 <div className="w-[1px] h-12 bg-brand-white/5" />
                 <div>
-                  <p className="text-3xl font-display font-medium text-brand-white">98%</p>
+                  <p className="text-3xl font-display font-medium text-brand-white">100%</p>
                   <p className="text-[10px] text-brand-gold font-bold uppercase tracking-widest mt-1">Protocol Success</p>
                 </div>
               </div>
             </div>
-            
-            <div className="relative aspect-square luxury-glass p-4 group">
-              <img 
-                src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80" 
-                alt="Triple Exceed HQ" 
-                className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700"
+
+            <div className="relative aspect-square luxury-glass p-4 group overflow-hidden">
+              <img
+                src="https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&q=80&w=1600"
+                alt="Triple Exceed Fleet Asset"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-black via-transparent to-transparent opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
 
@@ -56,11 +56,11 @@ export default function About() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
               { icon: <Shield size={28} />, title: 'Absolute Quality', desc: 'Our 200-point surgical inspection protocol ensures that only tier-one assets ever reach our clients.' },
-              { icon: <Globe size={28} />, title: 'Global Reach', desc: 'Strategic hubs in Houston, Shenzhen, Dubai, and Bremerhaven give us unparalleled access to world markets.' },
+              { icon: <Globe size={28} />, title: 'Global Reach', desc: 'Strategic hubs in USA and China give us unparalleled access to world markets.' },
               { icon: <Award size={28} />, title: 'Elite Service', desc: 'White-glove delivery and end-to-end management mean our clients never have to step foot in a port.' }
             ].map((value, i) => (
               <div key={i} className="luxury-glass p-12 space-y-8 group hover:border-brand-gold/40 transition-all">
-                <div className="w-16 h-16 bg-brand-gold/10 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-black transition-all">
+                <div className="w-16 h-16 bg-brand-gold/10 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-white transition-all">
                   {value.icon}
                 </div>
                 <div className="space-y-4">
@@ -72,17 +72,19 @@ export default function About() {
           </div>
 
           {/* Strategic Partners */}
-          <div className="py-24 border-t border-brand-white/5 space-y-16">
+          <div className="py-24 border-t border-brand-white/5 space-y-16 overflow-hidden">
             <div className="text-center space-y-4">
               <span className="text-brand-gold font-bold uppercase tracking-[0.5em] text-[10px]">Global Network</span>
               <h2 className="text-4xl font-display font-medium uppercase tracking-widest">Strategic Alliances</h2>
             </div>
-            <div className="flex flex-wrap justify-center gap-16 md:gap-32 opacity-20 grayscale">
-              {/* These would be high-end car brand logos or logistics partners */}
-              <span className="text-3xl font-display font-medium tracking-[0.2em]">TESLA</span>
-              <span className="text-3xl font-display font-medium tracking-[0.2em]">BYD</span>
-              <span className="text-3xl font-display font-medium tracking-[0.2em]">MANHEIM</span>
-              <span className="text-3xl font-display font-medium tracking-[0.2em]">MAERSK</span>
+            <div className="relative w-full py-10">
+              <div className="flex justify-center gap-16 md:gap-32 opacity-30 grayscale whitespace-nowrap">
+                <span className="text-3xl font-display font-medium tracking-[0.2em] text-brand-white">TESLA</span>
+                <span className="text-3xl font-display font-medium tracking-[0.2em] text-brand-white">BYD</span>
+                <span className="text-3xl font-display font-medium tracking-[0.2em] text-brand-white">TOYOTA</span>
+                <span className="text-3xl font-display font-medium tracking-[0.2em] text-brand-white">MANHEIM</span>
+                <span className="text-3xl font-display font-medium tracking-[0.2em] text-brand-white">MAERSK</span>
+              </div>
             </div>
           </div>
 
@@ -102,3 +104,4 @@ export default function About() {
     </div>
   );
 }
+

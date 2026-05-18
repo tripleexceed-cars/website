@@ -7,12 +7,13 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-accent: "Playfair Display", serif;
   
-  --color-brand-black: #0A0A0A;
-  --color-brand-white: #F5F5F5;
-  --color-brand-gold: #C5A059;
-  --color-brand-gold-muted: #8A6E2F;
-  --color-brand-silver: #A8A9AD;
-  --color-brand-matte: #0F0F0F;
+  --color-brand-black: #0A0A0A; /* Deep Cinematic Jet Black */
+  --color-brand-white: #F5F5F5; /* Crisp Premium Studio White */
+  --color-brand-gold: #DC2626; /* Vibrant Racing Red */
+  --color-brand-gold-muted: #991B1B; /* Deep Blood Crimson */
+  --color-brand-red: #DC2626;
+  --color-brand-silver: #A8A9AD; /* Elegant Silver Slate */
+  --color-brand-matte: #0F0F0F; /* Matte Black Glass Cards */
   --color-surface-dark: #151515;
   --color-surface-card: #1A1A1A;
 
@@ -36,22 +37,22 @@
 
 @layer components {
   .luxury-glass {
-    @apply bg-brand-matte border border-brand-white/5 shadow-2xl;
+    @apply bg-brand-matte border border-brand-white/5 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(220,38,38,0.25)] hover:border-red-600/40 hover:-translate-y-1;
   }
   
   .gold-gradient {
-    @apply bg-gradient-to-tr from-brand-gold-muted via-brand-gold to-brand-gold/50 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-red-600 via-rose-500 to-red-800 text-transparent bg-clip-text font-black tracking-tight;
   }
   
   .btn-premium {
-    @apply px-8 py-3 rounded-none border border-brand-gold text-brand-gold uppercase tracking-[0.2em] text-[10px] font-bold transition-all duration-300 hover:bg-brand-gold/5 disabled:opacity-50;
+    @apply px-8 py-4 rounded-none border-2 border-red-600 text-red-600 uppercase tracking-[0.25em] text-[11px] font-extrabold transition-all duration-300 hover:bg-red-600 hover:text-white hover:shadow-[0_10px_25px_rgba(220,38,38,0.4)] disabled:opacity-50;
   }
   
   .btn-premium-filled {
-    @apply px-8 py-3 rounded-none bg-brand-gold text-brand-black uppercase tracking-[0.2em] text-[10px] font-bold transition-all duration-300 hover:brightness-110;
+    @apply px-8 py-4 rounded-none bg-gradient-to-r from-red-600 via-red-700 to-red-800 text-white uppercase tracking-[0.25em] text-[11px] font-extrabold transition-all duration-300 hover:brightness-125 shadow-[0_15px_35px_rgba(220,38,38,0.4)] hover:shadow-[0_20px_45px_rgba(220,38,38,0.6)];
   }
 
   .nav-link {
-    @apply text-[11px] uppercase tracking-[0.2em] font-medium transition-all duration-300 text-brand-white/60 hover:text-brand-gold;
+    @apply text-[11px] uppercase tracking-[0.25em] font-extrabold transition-all duration-300 text-brand-white/70 hover:text-red-600 hover:tracking-[0.28em];
   }
 }

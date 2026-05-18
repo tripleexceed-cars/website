@@ -7,18 +7,21 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { MOCK_VEHICLES } from '../../data/mockVehicles';
 import { supabaseService } from '../../lib/supabaseService';
+import VehicleModal from '../../components/admin/VehicleModal';
 
 export default function AdminInventory() {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [isAddingNew, setIsAddingNew] = useState(false);
+  
+  // Modal State
+  const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchVehicles = async () => {
       try {
         const data = await supabaseService.getVehicles();
-        // Fallback to mock if empty
         setVehicles(data.length > 0 ? data : MOCK_VEHICLES);
       } catch (err) {
         setVehicles(MOCK_VEHICLES);
@@ -40,6 +43,18 @@ export default function AdminInventory() {
     }
   };
 
+  const handleSaveVehicle = async (vehicleData: any) => {
+    const saved = await supabaseService.saveVehicle(vehicleData);
+    setVehicles(prev => {
+      const exists = prev.some(v => v.id === saved.id);
+      if (exists) {
+        return prev.map(v => v.id === saved.id ? saved : v);
+      } else {
+        return [saved, ...prev];
+      }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-brand-black pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-6">
@@ -53,7 +68,7 @@ export default function AdminInventory() {
           </div>
 
           <button 
-            onClick={() => setIsAddingNew(true)}
+            onClick={() => { setSelectedVehicle(null); setIsModalOpen(true); }}
             className="btn-premium-filled py-3 px-8 flex items-center gap-3"
           >
             <Plus size={18} />
@@ -98,7 +113,10 @@ export default function AdminInventory() {
                   <img src={vehicle.images[0]} alt={vehicle.name} className="w-full h-full object-cover grayscale" />
                   <div className="absolute inset-0 bg-brand-black/40 group-hover:bg-transparent transition-all" />
                   <div className="absolute top-4 right-4 flex gap-2">
-                    <button className="p-2 bg-brand-black/80 backdrop-blur-md text-brand-gold hover:bg-brand-gold hover:text-black transition-all">
+                    <button 
+                      onClick={() => { setSelectedVehicle(vehicle); setIsModalOpen(true); }}
+                      className="p-2 bg-brand-black/80 backdrop-blur-md text-brand-gold hover:bg-brand-gold hover:text-black transition-all"
+                    >
                       <Edit size={14} />
                     </button>
                     <button 
@@ -115,7 +133,7 @@ export default function AdminInventory() {
                       <h3 className="font-display font-medium text-brand-white">{vehicle.name}</h3>
                       <p className="text-[10px] text-brand-white/30 uppercase tracking-widest">{vehicle.id}</p>
                     </div>
-                    <span className="text-brand-gold font-bold">GH₵ {vehicle.priceGHS.toLocaleString()}</span>
+                    <span className="text-brand-gold font-bold">GH₵ {vehicle.priceGHS?.toLocaleString()}</span>
                   </div>
                   
                   <div className="pt-4 border-t border-brand-white/5 flex justify-between items-center">
@@ -130,6 +148,13 @@ export default function AdminInventory() {
             ))}
           </div>
         )}
+
+        <VehicleModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSave={handleSaveVehicle} 
+          vehicle={selectedVehicle} 
+        />
       </div>
     </div>
   );

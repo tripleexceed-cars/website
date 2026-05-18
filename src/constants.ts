@@ -2,9 +2,9 @@ export const SITE_NAME = 'Triple Exceed';
 export const SITE_TAGLINE = 'Luxury Vehicle Importation Excellence';
 
 export const NAVIGATION = [
+  { name: 'Home', href: '/' },
   { name: 'Fleet', href: '/marketplace' },
   { name: 'Services', href: '/services' },
-  { name: 'Logistics', href: '/logistics' },
   { name: 'Process', href: '/how-it-works' },
   { name: 'About', href: '/about' },
   { name: 'Track', href: '/track' },
@@ -20,7 +20,7 @@ export const BRANDS = [
 ];
 
 export const SOURCE_COUNTRIES = [
-  'USA', 'China', 'Dubai', 'Europe', 'Canada'
+  'USA', 'China'
 ];
 
 export const CONDITIONS = [

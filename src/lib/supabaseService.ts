@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { MOCK_VEHICLES } from '../data/mockVehicles';
 
 const mapBooking = (b: any) => ({
   id: b.id,
@@ -35,20 +36,62 @@ const mapCustomer = (c: any) => ({
 export const supabaseService = {
   // Vehicles
   async getVehicles() {
-    const { data, error } = await supabase
-      .from('vehicles')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    return data;
+    try {
+      const { data, error } = await supabase
+        .from('vehicles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) return data;
+    } catch (_) {}
+
+    const local = localStorage.getItem('te_vehicles_db');
+    if (!local) {
+      localStorage.setItem('te_vehicles_db', JSON.stringify(MOCK_VEHICLES));
+      return MOCK_VEHICLES;
+    }
+    return JSON.parse(local);
+  },
+
+  async saveVehicle(vehicle: any) {
+    const list = await this.getVehicles();
+    const isNew = !vehicle.id;
+    const vId = vehicle.id || `TE-VEH-${Date.now()}`;
+    const payload = {
+      ...vehicle,
+      id: vId,
+      images: Array.isArray(vehicle.images) ? vehicle.images : [vehicle.images || 'https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&q=80&w=1200'],
+      priceGHS: Number(vehicle.priceGHS) || 0,
+      year: Number(vehicle.year) || 2026,
+      created_at: vehicle.created_at || new Date().toISOString()
+    };
+
+    let updatedList;
+    if (isNew) {
+      updatedList = [payload, ...list];
+    } else {
+      updatedList = list.map((v: any) => v.id === vehicle.id ? { ...v, ...payload } : v);
+    }
+
+    try {
+      if (isNew) {
+        await supabase.from('vehicles').insert([payload]);
+      } else {
+        await supabase.from('vehicles').update(payload).eq('id', payload.id);
+      }
+    } catch (_) {}
+
+    localStorage.setItem('te_vehicles_db', JSON.stringify(updatedList));
+    return payload;
   },
 
   async deleteVehicle(id: string) {
-    const { error } = await supabase
-      .from('vehicles')
-      .delete()
-      .eq('id', id);
-    if (error) throw error;
+    const list = await this.getVehicles();
+    const updatedList = list.filter((v: any) => v.id !== id);
+    localStorage.setItem('te_vehicles_db', JSON.stringify(updatedList));
+
+    try {
+      await supabase.from('vehicles').delete().eq('id', id);
+    } catch (_) {}
   },
 
   // Bookings
@@ -161,5 +204,184 @@ export const supabaseService = {
       if (error) throw error;
       return mapCustomer(data[0]);
     }
+  },
+
+  // Staff & RBAC Governance
+  async getStaffUsers() {
+    const DEFAULT_STAFF = [
+      {
+        id: 'staff-1',
+        email: 'admin@tripleexceed.com',
+        name: 'Louis Kemenyo',
+        role: 'admin',
+        passwordHash: 'admin',
+        isFirstLogin: false,
+        status: 'Active',
+        createdAt: new Date(2026, 0, 1).toISOString()
+      },
+      {
+        id: 'staff-2',
+        email: 'manager@tripleexceed.com',
+        name: 'Sarah Mensah',
+        role: 'manager',
+        passwordHash: 'manager',
+        isFirstLogin: false,
+        status: 'Active',
+        createdAt: new Date(2026, 1, 15).toISOString()
+      },
+      {
+        id: 'staff-3',
+        email: 'sales@tripleexceed.com',
+        name: 'David Osei',
+        role: 'sales',
+        passwordHash: 'sales',
+        isFirstLogin: false,
+        status: 'Active',
+        createdAt: new Date(2026, 2, 10).toISOString()
+      },
+      {
+        id: 'staff-4',
+        email: 'staff@tripleexceed.com',
+        name: 'Joshua Kemenyo',
+        role: 'staff',
+        tempPassword: 'TX-TEMP-2026',
+        passwordHash: 'TX-TEMP-2026',
+        isFirstLogin: true,
+        status: 'Pending Reset',
+        createdAt: new Date().toISOString()
+      }
+    ];
+
+    try {
+      // Try fetching from Supabase table if available
+      const { data, error } = await supabase.from('staff_users').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        return data.map(u => ({
+          id: u.id,
+          email: u.email,
+          name: u.name,
+          role: u.role,
+          tempPassword: u.temp_password,
+          passwordHash: u.password_hash,
+          isFirstLogin: u.is_first_login,
+          status: u.status,
+          createdAt: u.created_at
+        }));
+      }
+    } catch (_) {
+      // Fallback below
+    }
+
+    // Robust LocalStorage Fallback
+    const local = localStorage.getItem('te_staff_users');
+    if (!local) {
+      localStorage.setItem('te_staff_users', JSON.stringify(DEFAULT_STAFF));
+      return DEFAULT_STAFF;
+    }
+    return JSON.parse(local);
+  },
+
+  async saveStaffUser(staff: any) {
+    const list = await this.getStaffUsers();
+    const isNew = !staff.id;
+    const staffId = staff.id || `staff-${Date.now()}`;
+    const payload = {
+      id: staffId,
+      email: staff.email.toLowerCase(),
+      name: staff.name,
+      role: staff.role,
+      tempPassword: staff.tempPassword,
+      passwordHash: staff.tempPassword || staff.passwordHash,
+      isFirstLogin: isNew ? true : staff.isFirstLogin,
+      status: isNew ? ('Pending Reset' as const) : staff.status,
+      createdAt: staff.createdAt || new Date().toISOString()
+    };
+
+    let updatedList;
+    if (isNew) {
+      updatedList = [payload, ...list];
+    } else {
+      updatedList = list.map((u: any) => u.id === staff.id ? { ...u, ...payload } : u);
+    }
+
+    try {
+      if (isNew) {
+        await supabase.from('staff_users').insert([{
+          id: payload.id,
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+          temp_password: payload.tempPassword,
+          password_hash: payload.passwordHash,
+          is_first_login: payload.isFirstLogin,
+          status: payload.status,
+          created_at: payload.createdAt
+        }]);
+      } else {
+        await supabase.from('staff_users').update({
+          email: payload.email,
+          name: payload.name,
+          role: payload.role,
+          temp_password: payload.tempPassword,
+          password_hash: payload.passwordHash,
+          is_first_login: payload.isFirstLogin,
+          status: payload.status
+        }).eq('id', payload.id);
+      }
+    } catch (_) {
+      // LocalStorage sync ensures continuous operation
+    }
+
+    localStorage.setItem('te_staff_users', JSON.stringify(updatedList));
+    return payload;
+  },
+
+  async updateStaffPassword(id: string, newPassword: string) {
+    const list = await this.getStaffUsers();
+    const user = list.find((u: any) => u.id === id);
+    if (!user) throw new Error('User not found');
+
+    const updatedUser = {
+      ...user,
+      tempPassword: '',
+      passwordHash: newPassword,
+      isFirstLogin: false,
+      status: 'Active' as const
+    };
+
+    const updatedList = list.map((u: any) => u.id === id ? updatedUser : u);
+    localStorage.setItem('te_staff_users', JSON.stringify(updatedList));
+
+    try {
+      await supabase.from('staff_users').update({
+        temp_password: '',
+        password_hash: newPassword,
+        is_first_login: false,
+        status: 'Active'
+      }).eq('id', id);
+    } catch (_) {}
+
+    return updatedUser;
+  },
+
+  async verifyStaffLogin(email: string, passwordAttempt: string) {
+    const list = await this.getStaffUsers();
+    const user = list.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+    if (!user) return null;
+
+    if (user.passwordHash === passwordAttempt || (user.tempPassword && user.tempPassword === passwordAttempt)) {
+      return user;
+    }
+    return null;
+  },
+
+  async deleteStaffUser(id: string) {
+    const list = await this.getStaffUsers();
+    const updatedList = list.filter((u: any) => u.id !== id);
+    localStorage.setItem('te_staff_users', JSON.stringify(updatedList));
+
+    try {
+      await supabase.from('staff_users').delete().eq('id', id);
+    } catch (_) {}
   }
 };

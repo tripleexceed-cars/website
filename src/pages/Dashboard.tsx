@@ -2,13 +2,14 @@ import { useState, useEffect, FormEvent } from 'react';
 import { 
   User, LayoutDashboard, Package, Heart, Settings, 
   LogOut, Plus, Edit, Trash2, CheckCircle, Clock, Truck, Ship, Home as HomeIcon,
-  ArrowRight, Shield, Search, Filter, Anchor
+  ArrowRight, Shield, Search, Filter, Anchor, Key
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { MOCK_VEHICLES } from '../data/mockVehicles';
 import VehicleCard from '../components/marketplace/VehicleCard';
 import { supabaseService } from '../lib/supabaseService';
+import VehicleModal from '../components/admin/VehicleModal';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -19,22 +20,36 @@ export default function Dashboard() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [shipments, setShipments] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
   
+  // Staff Modal State
+  const [showStaffModal, setShowStaffModal] = useState(false);
+  const [staffName, setStaffName] = useState('');
+  const [staffEmail, setStaffEmail] = useState('');
+  const [staffRole, setStaffRole] = useState<'admin' | 'manager' | 'sales' | 'staff'>('staff');
+  const [staffTempPass, setStaffTempPass] = useState('');
+
+  // Vehicle Modal State
+  const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
+  const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [v, b, s, c] = await Promise.all([
+        const [v, b, s, c, st] = await Promise.all([
           supabaseService.getVehicles(),
           supabaseService.getBookings(),
           supabaseService.getShipments(),
-          supabaseService.getCustomers()
+          supabaseService.getCustomers(),
+          supabaseService.getStaffUsers()
         ]);
         setVehicles(v.length > 0 ? v : MOCK_VEHICLES);
         setBookings(b);
         setShipments(s);
         setCustomers(c);
+        setStaffList(st);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
@@ -76,6 +91,55 @@ export default function Dashboard() {
     } catch (err) {
       alert('Error approving booking');
     }
+  };
+
+  const handleCreateStaff = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await supabaseService.saveStaffUser({
+        name: staffName,
+        email: staffEmail,
+        role: staffRole,
+        tempPassword: staffTempPass,
+        isFirstLogin: true,
+        status: 'Pending Reset'
+      });
+      const updated = await supabaseService.getStaffUsers();
+      setStaffList(updated);
+      setShowStaffModal(false);
+      setStaffName('');
+      setStaffEmail('');
+      alert(`Personnel successfully registered.\nEmail: ${staffEmail}\nTemporary Key: ${staffTempPass}`);
+    } catch (err) {
+      alert('Failed to register personnel endpoint');
+    }
+  };
+
+  const handleDeleteStaff = async (id: string) => {
+    if (confirm('Revoke staff access endpoint and delete credentials?')) {
+      await supabaseService.deleteStaffUser(id);
+      const updated = await supabaseService.getStaffUsers();
+      setStaffList(updated);
+    }
+  };
+
+  const handleDeleteVehicle = async (id: string) => {
+    if (confirm('Delete this fleet asset?')) {
+      await supabaseService.deleteVehicle(id);
+      setVehicles(prev => prev.filter(v => v.id !== id));
+    }
+  };
+
+  const handleSaveVehicle = async (vehicleData: any) => {
+    const saved = await supabaseService.saveVehicle(vehicleData);
+    setVehicles(prev => {
+      const exists = prev.some(v => v.id === saved.id);
+      if (exists) {
+        return prev.map(v => v.id === saved.id ? saved : v);
+      } else {
+        return [saved, ...prev];
+      }
+    });
   };
 
   const renderContent = () => {
@@ -170,7 +234,10 @@ export default function Dashboard() {
                 </div>
                 <h2 className="text-4xl font-display font-medium">Fleet Inventory</h2>
               </div>
-              <button className="btn-premium-filled py-3 px-8 flex items-center gap-3">
+              <button 
+                onClick={() => { setSelectedVehicle(null); setIsVehicleModalOpen(true); }}
+                className="btn-premium-filled py-3 px-8 flex items-center gap-3"
+              >
                 <Plus size={18} /> Add Asset
               </button>
             </div>
@@ -180,8 +247,18 @@ export default function Dashboard() {
                   <div className="aspect-[16/9] bg-brand-white/5 relative overflow-hidden">
                     <img src={vehicle.images?.[0]} alt={vehicle.name} className="w-full h-full object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700" />
                     <div className="absolute top-4 right-4 flex gap-2">
-                      <button className="p-2 bg-brand-black/80 backdrop-blur-md text-brand-gold hover:bg-brand-gold hover:text-black transition-all"><Edit size={14} /></button>
-                      <button className="p-2 bg-brand-black/80 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white transition-all"><Trash2 size={14} /></button>
+                      <button 
+                        onClick={() => { setSelectedVehicle(vehicle); setIsVehicleModalOpen(true); }}
+                        className="p-2 bg-brand-black/80 backdrop-blur-md text-brand-gold hover:bg-brand-gold hover:text-black transition-all"
+                      >
+                        <Edit size={14} />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteVehicle(vehicle.id)}
+                        className="p-2 bg-brand-black/80 backdrop-blur-md text-red-500 hover:bg-red-500 hover:text-white transition-all"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                   <div className="p-6">
@@ -360,6 +437,161 @@ export default function Dashboard() {
             </div>
           </div>
         );
+      case 'staff':
+        return (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex justify-between items-end">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <span className="w-8 h-[1px] bg-brand-gold" />
+                  <span className="text-brand-gold uppercase tracking-[0.4em] text-[10px] font-bold">Internal Governance</span>
+                </div>
+                <h2 className="text-4xl font-display font-medium">Personnel & Access Registry</h2>
+              </div>
+              <button 
+                onClick={() => {
+                  setStaffTempPass(`TX-TEMP-${Math.floor(1000 + Math.random() * 9000)}`);
+                  setShowStaffModal(true);
+                }}
+                className="btn-premium-filled py-3 px-8 flex items-center gap-3"
+              >
+                <Plus size={18} /> Register Personnel
+              </button>
+            </div>
+
+            {showStaffModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-brand-black/80 backdrop-blur-md">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="luxury-glass p-10 max-w-lg w-full space-y-8 relative border border-brand-gold/30"
+                >
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-display font-medium text-brand-white">New Account Protocol</h3>
+                    <p className="text-brand-white/40 text-xs">Assign secure endpoint access to internal personnel or administrators.</p>
+                  </div>
+                  <form onSubmit={handleCreateStaff} className="space-y-6">
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Full Name</label>
+                      <input 
+                        type="text"
+                        required
+                        value={staffName}
+                        onChange={e => setStaffName(e.target.value)}
+                        placeholder="Officer Name"
+                        className="w-full bg-brand-white/5 border border-brand-white/5 p-3 text-xs text-brand-white focus:border-brand-gold/50 outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Official Email</label>
+                      <input 
+                        type="email"
+                        required
+                        value={staffEmail}
+                        onChange={e => setStaffEmail(e.target.value)}
+                        placeholder="identity@tripleexceed.com"
+                        className="w-full bg-brand-white/5 border border-brand-white/5 p-3 text-xs text-brand-white focus:border-brand-gold/50 outline-none"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Security Role</label>
+                      <select 
+                        value={staffRole}
+                        onChange={e => setStaffRole(e.target.value as any)}
+                        className="w-full bg-[#151515] border border-brand-white/5 p-3 text-xs text-brand-white focus:border-brand-gold/50 outline-none uppercase tracking-widest"
+                      >
+                        <option value="admin">Administrator (Master)</option>
+                        <option value="manager">Operations Manager</option>
+                        <option value="sales">Sales Specialist</option>
+                        <option value="staff">Logistics Staff</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Assigned Temporary Key</label>
+                      <input 
+                        type="text"
+                        required
+                        value={staffTempPass}
+                        onChange={e => setStaffTempPass(e.target.value)}
+                        className="w-full bg-brand-white/5 border border-brand-white/5 p-3 font-mono text-xs text-brand-gold focus:border-brand-gold/50 outline-none"
+                      />
+                      <p className="text-[10px] text-brand-white/30">Upon first login, the officer will be forced to replace this key.</p>
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                      <button 
+                        type="button"
+                        onClick={() => setShowStaffModal(false)}
+                        className="flex-1 py-3 border border-brand-white/10 text-brand-white/60 text-xs uppercase tracking-widest hover:border-brand-white/30 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit"
+                        className="flex-1 btn-premium-filled py-3 text-xs font-bold uppercase tracking-widest"
+                      >
+                        Register Access
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+
+            <div className="luxury-glass overflow-hidden">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-brand-white/5 text-[10px] uppercase tracking-[0.3em] font-bold text-brand-gold">
+                    <th className="p-6">Personnel</th>
+                    <th className="p-6">Endpoint Registry</th>
+                    <th className="p-6">Security Role</th>
+                    <th className="p-6">Protocol Status</th>
+                    <th className="p-6 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-brand-white/5">
+                  {staffList.map((member) => (
+                    <tr key={member.id} className="group hover:bg-brand-white/5 transition-colors">
+                      <td className="p-6 font-display font-medium text-brand-white">{member.name}</td>
+                      <td className="p-6">
+                        <span className="text-xs text-brand-white/80 font-mono">{member.email}</span>
+                      </td>
+                      <td className="p-6">
+                        <span className={`px-3 py-1 text-[9px] uppercase tracking-wider font-bold border rounded-none ${
+                          member.role === 'admin' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
+                          member.role === 'manager' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                          member.role === 'sales' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' :
+                          'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        }`}>
+                          {member.role}
+                        </span>
+                      </td>
+                      <td className="p-6">
+                        <span className={`inline-block px-3 py-1 text-[9px] uppercase tracking-wider font-bold ${
+                          member.status === 'Active' ? 'text-green-400 bg-green-500/10 border border-green-500/20' : 'text-amber-400 bg-amber-500/10 border border-amber-500/20'
+                        }`}>
+                          {member.status}
+                        </span>
+                        {member.tempPassword && (
+                          <p className="text-[10px] text-brand-gold mt-1 font-mono">Key: {member.tempPassword}</p>
+                        )}
+                      </td>
+                      <td className="p-6 text-right">
+                        <div className="flex items-center justify-end space-x-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            onClick={() => handleDeleteStaff(member.id)}
+                            className="text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-bold transition-colors flex items-center gap-2"
+                          >
+                            <Trash2 size={14} /> Revoke
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
       default:
         return <div className="py-20 text-center text-brand-white/20">Module Under Configuration</div>;
     }
@@ -369,16 +601,34 @@ export default function Dashboard() {
     <div className="min-h-screen bg-brand-black pt-24 pb-12 flex">
       {/* Sidebar */}
       <div className="w-72 border-r border-brand-white/10 hidden lg:flex flex-col p-8 space-y-12">
+        {/* User Identity Indicator */}
+        <div className="space-y-3 pb-8 border-b border-brand-white/10">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center font-display font-bold text-brand-gold">
+              {user?.name ? user.name[0].toUpperCase() : 'U'}
+            </div>
+            <div>
+              <p className="text-brand-white font-medium text-sm">{user?.name || 'Authorized Client'}</p>
+              <span className="inline-block px-2 py-0.5 mt-1 bg-brand-gold/10 text-brand-gold font-mono text-[9px] uppercase tracking-widest border border-brand-gold/20">
+                {user?.role || 'client'}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-1">
           <p className="text-[10px] uppercase tracking-[0.4em] font-bold text-brand-gold mb-4">Command Core</p>
           {[
-            { id: 'overview', name: 'Nexus Overview', icon: LayoutDashboard },
-            { id: 'inventory', name: 'Fleet Inventory', icon: Package },
-            { id: 'bookings', name: 'Reservations', icon: CheckCircle },
-            { id: 'logistics', name: 'Global Logistics', icon: Ship },
-            { id: 'users', name: 'VIP Directory', icon: User },
-            { id: 'settings', name: 'Protocols', icon: Settings }
-          ].map((item) => (
+            { id: 'overview', name: 'Nexus Overview', icon: LayoutDashboard, roles: ['admin', 'manager', 'sales', 'staff', 'client'] },
+            { id: 'inventory', name: 'Fleet Inventory', icon: Package, roles: ['admin', 'manager', 'sales'] },
+            { id: 'bookings', name: 'Reservations', icon: CheckCircle, roles: ['admin', 'manager', 'sales', 'staff'] },
+            { id: 'logistics', name: 'Global Logistics', icon: Ship, roles: ['admin', 'manager', 'staff'] },
+            { id: 'users', name: 'VIP Directory', icon: User, roles: ['admin', 'manager', 'sales'] },
+            { id: 'staff', name: 'Personnel & Access', icon: Shield, roles: ['admin'] },
+            { id: 'settings', name: 'Protocols', icon: Settings, roles: ['admin'] }
+          ]
+            .filter(item => item.roles.includes(user?.role || 'client'))
+            .map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
@@ -404,12 +654,19 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 lg:p-16 max-w-7xl mx-auto w-full">
+      <div className="flex-1 p-8 lg:p-16 max-w-7xl mx-auto w-full relative">
         {loading ? (
           <div className="h-full flex items-center justify-center">
             <div className="w-12 h-12 border-2 border-brand-gold border-t-transparent animate-spin rounded-full" />
           </div>
         ) : renderContent()}
+
+        <VehicleModal 
+          isOpen={isVehicleModalOpen} 
+          onClose={() => setIsVehicleModalOpen(false)} 
+          onSave={handleSaveVehicle} 
+          vehicle={selectedVehicle} 
+        />
       </div>
     </div>
   );

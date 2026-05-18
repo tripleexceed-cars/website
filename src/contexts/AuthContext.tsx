@@ -1,14 +1,18 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-interface User {
+export type UserRole = 'admin' | 'manager' | 'sales' | 'staff' | 'client';
+
+export interface User {
+  id?: string;
   email: string;
-  role: 'admin' | 'client';
+  role: UserRole;
   name?: string;
+  isFirstLogin?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, role: 'admin' | 'client') => Promise<void>;
+  login: (userOrEmail: User | string, roleParam?: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -28,8 +32,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, role: 'admin' | 'client') => {
-    const newUser: User = { email, role, name: email.split('@')[0] };
+  const login = async (userOrEmail: User | string, roleParam?: UserRole) => {
+    let newUser: User;
+    if (typeof userOrEmail === 'string') {
+      newUser = { 
+        email: userOrEmail, 
+        role: roleParam || 'client', 
+        name: userOrEmail.split('@')[0] 
+      };
+    } else {
+      newUser = userOrEmail;
+    }
     setUser(newUser);
     localStorage.setItem('te_user', JSON.stringify(newUser));
   };
