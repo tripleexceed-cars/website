@@ -53,6 +53,21 @@ export default function VehicleModal({ isOpen, onClose, onSave, vehicle }: Vehic
 
   if (!isOpen) return null;
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -217,14 +232,31 @@ export default function VehicleModal({ isOpen, onClose, onSave, vehicle }: Vehic
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Asset Image URL</label>
-                <input 
-                  type="url" 
-                  placeholder="https://images.unsplash.com/..." 
-                  value={imageUrl} 
-                  onChange={e => setImageUrl(e.target.value)}
-                  className="w-full bg-brand-white/5 border border-brand-white/5 p-3.5 text-xs text-brand-white focus:border-brand-gold/50 outline-none font-mono text-[10px]"
-                />
+                <label className="text-[10px] uppercase tracking-widest text-brand-gold font-bold">Asset Image (Select from Device)</label>
+                <div className="flex items-center gap-4">
+                  <label className="cursor-pointer flex-1 border-2 border-dashed border-brand-white/10 hover:border-brand-gold/50 p-6 text-center rounded-xl bg-brand-white/5 transition-colors group block">
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                    <div className="flex flex-col items-center gap-2">
+                      <ImageIcon size={28} className="text-brand-gold group-hover:scale-110 transition-transform" />
+                      <span className="text-xs text-brand-white font-bold uppercase tracking-widest">Browse Local Device</span>
+                      <span className="text-[10px] text-brand-silver">Supports PNG, JPG, WEBP (up to 5MB)</span>
+                    </div>
+                  </label>
+                  {imageUrl && (
+                    <div className="w-28 h-28 rounded-xl overflow-hidden border border-brand-gold/30 flex-shrink-0 relative group">
+                      <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          type="button" 
+                          onClick={() => setImageUrl('')} 
+                          className="text-red-500 font-bold text-xs uppercase tracking-widest p-2"
+                        >
+                          Clear
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2 md:col-span-2">
