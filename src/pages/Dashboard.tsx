@@ -10,9 +10,11 @@ import { MOCK_VEHICLES } from '../data/mockVehicles';
 import VehicleCard from '../components/marketplace/VehicleCard';
 import { supabaseService } from '../lib/supabaseService';
 import VehicleModal from '../components/admin/VehicleModal';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   
   // State
@@ -68,6 +70,7 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     await logout();
+    navigate('/');
   };
 
   const handleApproveBooking = async (id: string) => {
