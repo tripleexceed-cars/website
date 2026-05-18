@@ -1,8 +1,9 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, ArrowRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-export default function VehicleCard({ vehicle }: { vehicle: any }) {
+export default function VehicleCard({ vehicle }: { vehicle: any; key?: React.Key }) {
   return (
     <Link to={`/vehicle/${vehicle.id}`} className="block group">
       <div className="luxury-glass overflow-hidden relative">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crosshair, Ship, Anchor, Search, ArrowRight, AlertTriangle, Clock } from 'lucide-react';
 import { supabaseService } from '../lib/supabaseService';
