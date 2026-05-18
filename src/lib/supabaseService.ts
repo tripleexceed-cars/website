@@ -255,14 +255,22 @@ export const supabaseService = {
   },
 
   async getShipmentByTrackingId(trackingId: string) {
-    const { data, error } = await supabase
-      .from('shipments')
-      .select('*')
-      .ilike('tracking_id', trackingId)
-      .single();
-    
-    if (error) return null;
-    return mapShipment(data);
+    const cleanId = trackingId.trim();
+    try {
+      const { data, error } = await supabase
+        .from('shipments')
+        .select('*')
+        .ilike('tracking_id', cleanId)
+        .single();
+      
+      if (!error && data) {
+        return mapShipment(data);
+      }
+    } catch (_) {}
+
+    const list = await this.getShipments();
+    const found = list.find((s: any) => s.trackingId.toLowerCase() === cleanId.toLowerCase());
+    return found || null;
   },
 
   // Customers
