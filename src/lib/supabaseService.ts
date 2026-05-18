@@ -1,6 +1,40 @@
 import { supabase } from './supabase';
 import { MOCK_VEHICLES } from '../data/mockVehicles';
 
+const MOCK_INQUIRIES = [
+  {
+    id: 'INQ-101',
+    name: 'Osei Kwame',
+    email: 'osei.kwame@gmail.com',
+    phone: '+233 24 458 1923',
+    inquiryType: 'VIP Fleet Consultation',
+    message: 'Looking to acquire two 2025 Mercedes-Maybach GLS 600 units with armored specs for corporate transit.',
+    status: 'Unread',
+    createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
+  },
+  {
+    id: 'INQ-102',
+    name: 'Amina Alhassan',
+    email: 'amina@danquahgroup.com',
+    phone: '+233 50 129 4833',
+    inquiryType: 'Logistics Inquiry',
+    message: 'What is the estimated maritime transit window and landed customs duty for a 2024 Porsche 911 GT3 RS from Bremerhaven?',
+    status: 'Read',
+    createdAt: new Date(Date.now() - 3600000 * 28).toISOString()
+  }
+];
+
+const mapInquiry = (i: any) => ({
+  id: i.id,
+  name: i.name,
+  email: i.email,
+  phone: i.phone,
+  inquiryType: i.inquiry_type,
+  message: i.message,
+  status: i.status,
+  createdAt: i.created_at
+});
+
 const mapBooking = (b: any) => ({
   id: b.id,
   vehicleName: b.vehicle_name,
@@ -410,6 +444,75 @@ export const supabaseService = {
 
     try {
       await supabase.from('staff_users').delete().eq('id', id);
+    } catch (_) {}
+  },
+
+  async getInquiries() {
+    try {
+      const { data, error } = await supabase.from('inquiries').select('*').order('created_at', { ascending: false });
+      if (!error && data && data.length > 0) {
+        const mapped = data.map(mapInquiry);
+        localStorage.setItem('te_inquiries', JSON.stringify(mapped));
+        return mapped;
+      }
+    } catch (_) {}
+
+    const local = localStorage.getItem('te_inquiries');
+    if (local) return JSON.parse(local);
+
+    localStorage.setItem('te_inquiries', JSON.stringify(MOCK_INQUIRIES));
+    return MOCK_INQUIRIES;
+  },
+
+  async createInquiry(payload: { name: string; email: string; phone: string; inquiryType: string; message: string }) {
+    const newInq = {
+      id: `INQ-${Math.floor(100 + Math.random() * 900)}`,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      inquiryType: payload.inquiryType,
+      message: payload.message,
+      status: 'Unread',
+      createdAt: new Date().toISOString()
+    };
+
+    const list = await this.getInquiries();
+    const updated = [newInq, ...list];
+    localStorage.setItem('te_inquiries', JSON.stringify(updated));
+
+    try {
+      await supabase.from('inquiries').insert([{
+        id: newInq.id,
+        name: newInq.name,
+        email: newInq.email,
+        phone: newInq.phone,
+        inquiry_type: newInq.inquiryType,
+        message: newInq.message,
+        status: 'Unread',
+        created_at: newInq.createdAt
+      }]);
+    } catch (_) {}
+
+    return newInq;
+  },
+
+  async updateInquiryStatus(id: string, status: string) {
+    const list = await this.getInquiries();
+    const updated = list.map((i: any) => i.id === id ? { ...i, status } : i);
+    localStorage.setItem('te_inquiries', JSON.stringify(updated));
+
+    try {
+      await supabase.from('inquiries').update({ status }).eq('id', id);
+    } catch (_) {}
+  },
+
+  async deleteInquiry(id: string) {
+    const list = await this.getInquiries();
+    const updated = list.filter((i: any) => i.id !== id);
+    localStorage.setItem('te_inquiries', JSON.stringify(updated));
+
+    try {
+      await supabase.from('inquiries').delete().eq('id', id);
     } catch (_) {}
   }
 };

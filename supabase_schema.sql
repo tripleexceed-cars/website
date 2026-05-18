@@ -117,3 +117,21 @@ CREATE POLICY "Allow public update on shipments" ON public.shipments FOR UPDATE 
 
 CREATE POLICY "Allow public read access on customers" ON public.customers FOR SELECT USING (true);
 CREATE POLICY "Allow public insert on customers" ON public.customers FOR INSERT WITH CHECK (true);
+
+-- 6. INQUIRIES TABLE (Client Contact & General Sourcing Messages)
+CREATE TABLE IF NOT EXISTS public.inquiries (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    inquiry_type TEXT NOT NULL,
+    message TEXT NOT NULL,
+    status TEXT DEFAULT 'Unread' NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access on inquiries" ON public.inquiries FOR SELECT USING (true);
+CREATE POLICY "Allow public insert on inquiries" ON public.inquiries FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public update on inquiries" ON public.inquiries FOR UPDATE USING (true);
+CREATE POLICY "Allow public delete on inquiries" ON public.inquiries FOR DELETE USING (true);

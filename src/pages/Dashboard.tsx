@@ -2,7 +2,7 @@ import React, { useState, useEffect, FormEvent } from 'react';
 import { 
   User, LayoutDashboard, Package, Heart, Settings, 
   LogOut, Plus, Edit, Trash2, CheckCircle, Clock, Truck, Ship, Home as HomeIcon,
-  ArrowRight, Shield, Search, Filter, Anchor, Key, Database, Cloud, RefreshCw, Save, Globe, DollarSign
+  ArrowRight, Shield, Search, Filter, Anchor, Key, Database, Cloud, RefreshCw, Save, Globe, DollarSign, Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,6 +23,7 @@ export default function Dashboard() {
   const [shipments, setShipments] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [staffList, setStaffList] = useState<any[]>([]);
+  const [inquiries, setInquiries] = useState<any[]>([]);
   
   // Staff Modal State
   const [showStaffModal, setShowStaffModal] = useState(false);
@@ -47,18 +48,20 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [v, b, s, c, st] = await Promise.all([
+        const [v, b, s, c, st, inq] = await Promise.all([
           supabaseService.getVehicles(),
           supabaseService.getBookings(),
           supabaseService.getShipments(),
           supabaseService.getCustomers(),
-          supabaseService.getStaffUsers()
+          supabaseService.getStaffUsers(),
+          supabaseService.getInquiries()
         ]);
         setVehicles(v.length > 0 ? v : MOCK_VEHICLES);
         setBookings(b);
         setShipments(s);
         setCustomers(c);
         setStaffList(st);
+        setInquiries(inq);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
       } finally {
@@ -160,6 +163,20 @@ export default function Dashboard() {
         return [saved, ...prev];
       }
     });
+  };
+
+  const handleToggleInquiryStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'Unread' ? 'Read' : 'Unread';
+    await supabaseService.updateInquiryStatus(id, newStatus);
+    const updated = await supabaseService.getInquiries();
+    setInquiries(updated);
+  };
+
+  const handleDeleteInquiry = async (id: string) => {
+    if (confirm('Delete this inquiry record from the database?')) {
+      await supabaseService.deleteInquiry(id);
+      setInquiries(prev => prev.filter(i => i.id !== id));
+    }
   };
 
   const renderContent = () => {
@@ -618,6 +635,84 @@ export default function Dashboard() {
             </div>
           </div>
         );
+      case 'inquiries':
+        return (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex justify-between items-end">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <span className="w-8 h-[1px] bg-brand-gold" />
+                  <span className="text-brand-gold uppercase tracking-[0.4em] text-[10px] font-bold">Client Communication Hub</span>
+                </div>
+                <h2 className="text-4xl font-display font-medium text-brand-white">Inquiries & Messages</h2>
+                <p className="text-xs text-brand-silver/60 uppercase tracking-widest max-w-2xl">
+                  Review and manage secure messages transmitted by website visitors via the public contact portal.
+                </p>
+              </div>
+              <div className="flex items-center gap-3 bg-brand-white/5 border border-brand-white/10 px-4 py-2">
+                <span className="w-2 h-2 rounded-full bg-brand-gold animate-pulse" />
+                <span className="text-[10px] uppercase tracking-widest font-mono text-brand-white font-bold">
+                  {inquiries.filter(i => i.status === 'Unread').length} Unread Protocol(s)
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {inquiries.map((inq) => (
+                <div 
+                  key={inq.id} 
+                  className={`luxury-glass p-8 space-y-6 transition-all border ${
+                    inq.status === 'Unread' ? 'border-brand-gold/40 bg-brand-white/[0.03]' : 'border-brand-white/5 opacity-70'
+                  }`}
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-brand-white/10">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-display font-bold text-brand-white">{inq.name}</span>
+                        <span className="px-2.5 py-0.5 text-[9px] font-mono uppercase tracking-widest bg-brand-gold/10 text-brand-gold border border-brand-gold/20 font-bold">
+                          {inq.inquiryType}
+                        </span>
+                        {inq.status === 'Unread' && (
+                          <span className="w-2 h-2 rounded-full bg-brand-gold" />
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 text-xs font-mono text-brand-silver">
+                        <span className="text-brand-white/80">{inq.email}</span>
+                        <span>•</span>
+                        <span className="text-brand-gold font-bold">{inq.phone}</span>
+                        <span>•</span>
+                        <span className="text-[10px] text-brand-white/40">{new Date(inq.createdAt).toLocaleString()}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={() => handleToggleInquiryStatus(inq.id, inq.status)}
+                        className={`px-4 py-2 text-xs uppercase tracking-widest font-bold border transition-all ${
+                          inq.status === 'Unread' 
+                            ? 'bg-brand-gold text-brand-black border-brand-gold hover:bg-transparent hover:text-brand-gold' 
+                            : 'bg-brand-white/5 text-brand-silver border-brand-white/10 hover:border-brand-white/30'
+                        }`}
+                      >
+                        {inq.status === 'Unread' ? 'Mark as Read' : 'Mark Unread'}
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteInquiry(inq.id)}
+                        className="p-2 border border-red-500/20 text-red-500/60 hover:text-red-500 hover:border-red-500 hover:bg-red-500/10 transition-all"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#121212] p-6 border border-brand-white/5 rounded-none font-mono text-xs text-brand-silver leading-relaxed whitespace-pre-wrap">
+                    {inq.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
       case 'settings':
         return (
           <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
@@ -794,6 +889,7 @@ export default function Dashboard() {
             { id: 'bookings', name: 'Reservations', icon: CheckCircle, roles: ['admin', 'manager', 'sales', 'staff'] },
             { id: 'logistics', name: 'Global Logistics', icon: Ship, roles: ['admin', 'manager', 'staff'] },
             { id: 'users', name: 'VIP Directory', icon: User, roles: ['admin', 'manager', 'sales'] },
+            { id: 'inquiries', name: 'Inquiries & Messages', icon: Mail, roles: ['admin', 'manager', 'sales'] },
             { id: 'staff', name: 'Personnel & Access', icon: Shield, roles: ['admin'] },
             { id: 'settings', name: 'Protocols', icon: Settings, roles: ['admin'] }
           ]
