@@ -85,9 +85,6 @@ export default function Login() {
         className="w-full max-w-md relative z-10 space-y-8"
       >
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-gold/10 border border-brand-gold/20 rotate-45 mb-4">
-            <Shield size={24} className="text-brand-gold -rotate-45" />
-          </div>
           <div className="space-y-2">
             <span className="text-brand-gold font-bold uppercase tracking-[0.4em] text-[10px]">Security Gateway</span>
             <h1 className="text-4xl font-display font-medium text-brand-white">
