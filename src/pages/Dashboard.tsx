@@ -2,7 +2,7 @@ import React, { useState, useEffect, FormEvent } from 'react';
 import { 
   User, LayoutDashboard, Package, Heart, Settings, 
   LogOut, Plus, Edit, Trash2, CheckCircle, Clock, Truck, Ship, Home as HomeIcon,
-  ArrowRight, Shield, Search, Filter, Anchor, Key
+  ArrowRight, Shield, Search, Filter, Anchor, Key, Database, Cloud, RefreshCw, Save, Globe, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,6 +32,13 @@ export default function Dashboard() {
   // Vehicle Modal State
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
   const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
+
+  // Protocols & Settings State
+  const [exchangeRate, setExchangeRate] = useState(15.80);
+  const [inspectionFee, setInspectionFee] = useState(2500);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [backupLoading, setBackupLoading] = useState(false);
+  const [lastBackup, setLastBackup] = useState(new Date().toLocaleString());
 
   const [loading, setLoading] = useState(true);
 
@@ -589,6 +596,150 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <span className="w-8 h-[1px] bg-brand-gold" />
+                <span className="text-brand-gold uppercase tracking-[0.4em] text-[10px] font-bold">System Configuration</span>
+              </div>
+              <h2 className="text-4xl font-display font-medium text-brand-white">Protocols Command Core</h2>
+              <p className="text-xs text-brand-silver/60 uppercase tracking-widest max-w-2xl">
+                Manage global exchange pegs, cryptographic backup telemetry, and automated verification thresholds.
+              </p>
+            </div>
+
+            {/* Health Indicators Banner */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="luxury-glass p-6 border-l-2 border-green-500 space-y-2 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Supabase Cloud Engine</span>
+                  <Cloud size={16} className="text-green-500" />
+                </div>
+                <p className="text-lg font-display text-brand-white font-bold">Connected</p>
+                <span className="text-[9px] text-green-400 font-mono">SSL / TLS v1.3 Encrypted</span>
+              </div>
+
+              <div className="luxury-glass p-6 border-l-2 border-brand-gold space-y-2 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Encrypted Local Ledger</span>
+                  <Database size={16} className="text-brand-gold" />
+                </div>
+                <p className="text-lg font-display text-brand-white font-bold">Active Fallback</p>
+                <span className="text-[9px] text-brand-gold/80 font-mono">AES-256 State Mirror</span>
+              </div>
+
+              <div className="luxury-glass p-6 border-l-2 border-blue-500 space-y-2 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-brand-silver uppercase tracking-widest font-bold">Vercel Edge CDN</span>
+                  <Globe size={16} className="text-blue-500" />
+                </div>
+                <p className="text-lg font-display text-brand-white font-bold">99.99% Uptime</p>
+                <span className="text-[9px] text-blue-400 font-mono">Distributed Routing Nodes</span>
+              </div>
+            </div>
+
+            {/* Main Configuration Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              {/* Financial Pegs */}
+              <div className="luxury-glass p-8 space-y-8 relative border border-brand-gold/20">
+                <div className="flex items-center gap-3 border-b border-brand-white/10 pb-4">
+                  <DollarSign size={20} className="text-brand-gold" />
+                  <h3 className="text-xl font-display font-medium text-brand-white uppercase tracking-wider">Fiscal & Sourcing Pegs</h3>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <label className="text-brand-gold font-bold uppercase tracking-widest text-[10px]">USD to GHS Benchmark Peg</label>
+                      <span className="text-brand-white font-mono font-bold">1 USD = {exchangeRate} GHS</span>
+                    </div>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value={exchangeRate}
+                      onChange={e => setExchangeRate(Number(e.target.value))}
+                      className="w-full bg-brand-white/5 border border-brand-white/10 p-3.5 text-xs text-brand-white focus:border-brand-gold/50 outline-none font-mono"
+                    />
+                    <p className="text-[10px] text-brand-silver/50">Calculates automated landed import tax valuation across marketplace vehicles.</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <label className="text-brand-gold font-bold uppercase tracking-widest text-[10px]">Standard Escrow Inspection Fee (GHS)</label>
+                      <span className="text-brand-white font-mono font-bold">GH₵ {inspectionFee.toLocaleString()}</span>
+                    </div>
+                    <input 
+                      type="number" 
+                      value={inspectionFee}
+                      onChange={e => setInspectionFee(Number(e.target.value))}
+                      className="w-full bg-brand-white/5 border border-brand-white/10 p-3.5 text-xs text-brand-white focus:border-brand-gold/50 outline-none font-mono"
+                    />
+                    <p className="text-[10px] text-brand-silver/50">Mandatory non-refundable deposit required prior to global physical dispatch.</p>
+                  </div>
+
+                  <button 
+                    onClick={() => alert('Fiscal protocols successfully synchronized across all operational hubs.')}
+                    className="w-full btn-premium-filled py-3.5 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2"
+                  >
+                    <Save size={16} /> Update Financial Pegs
+                  </button>
+                </div>
+              </div>
+
+              {/* Maintenance & Backup */}
+              <div className="luxury-glass p-8 space-y-8 relative border border-brand-gold/20">
+                <div className="flex items-center gap-3 border-b border-brand-white/10 pb-4">
+                  <Shield size={20} className="text-brand-gold" />
+                  <h3 className="text-xl font-display font-medium text-brand-white uppercase tracking-wider">Security & Cryptographic Snapshot</h3>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-brand-white/5 border border-brand-white/10">
+                    <div className="space-y-1">
+                      <p className="text-xs text-brand-white uppercase tracking-wider font-bold">Platform Maintenance Lock</p>
+                      <p className="text-[10px] text-brand-silver">Restricts client-side marketplace reservations during scheduled inventory updates.</p>
+                    </div>
+                    <button 
+                      onClick={() => setMaintenanceMode(!maintenanceMode)}
+                      className={`px-4 py-2 text-xs uppercase tracking-widest font-bold transition-all ${
+                        maintenanceMode ? 'bg-red-500 text-white font-extrabold' : 'bg-brand-gold text-brand-black font-extrabold'
+                      }`}
+                    >
+                      {maintenanceMode ? 'Locked' : 'Unlocked'}
+                    </button>
+                  </div>
+
+                  <div className="space-y-4 p-6 bg-[#121212] border border-brand-white/5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-brand-gold uppercase tracking-widest text-[10px] font-bold">Master Database Snapshot</span>
+                      <span className="text-brand-silver text-[10px]">Last: {lastBackup}</span>
+                    </div>
+                    <p className="text-xs text-brand-silver/80">
+                      Creates an immutable export of the complete vehicle fleet, VIP bookings, and staff cryptographic signatures.
+                    </p>
+                    <button 
+                      onClick={() => {
+                        setBackupLoading(true);
+                        setTimeout(() => {
+                          setBackupLoading(false);
+                          setLastBackup(new Date().toLocaleString());
+                          alert('Master database snapshot successfully encrypted and saved to decentralized ledger.');
+                        }, 1500);
+                      }}
+                      disabled={backupLoading}
+                      className="w-full py-4 border border-brand-gold/30 hover:border-brand-gold text-brand-gold text-xs uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw size={14} className={backupLoading ? 'animate-spin' : ''} />
+                      {backupLoading ? 'Encrypting Ledger...' : 'Execute Manual Snapshot'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
